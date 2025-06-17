@@ -254,8 +254,9 @@ ORDER BY items_published DESC;
 
 ### Entity Relationship Diagram
 
-Diagram
+### Entity Relationship Diagram
 
+```mermaid
 erDiagram
     roles ||--o{ users : "1:N"
     users ||--o{ library_items : "1:N"
@@ -265,6 +266,7 @@ erDiagram
     categories ||--o{ library_items : "1:N"
     library_items }o--o{ authors : "N:M via item_authors"
     system_settings }|..|| "Standalone Config" : ""
+
 
 
     Note: Run SHOW CREATE TABLE commands for complete constraint details. Database last modified: 2025-06-18
