@@ -255,7 +255,7 @@ ORDER BY items_published DESC;
 ### Entity Relationship Diagram
 
 Diagram
-```Code
+```mermaid
 
 erDiagram
     roles ||--o{ users : "1:N"
