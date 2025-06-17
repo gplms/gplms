@@ -192,27 +192,34 @@ VALUES ('Ο Αλέξης Ζορμπάς',
         (SELECT publisher_id FROM publishers WHERE name = 'Εκδόσεις Πατάκη'),
         'GR', 1946, 1, 'available');
 INSERT INTO item_authors VALUES (LAST_INSERT_ID(), (SELECT author_id FROM authors WHERE name = 'Νίκος Καζαντζάκης'));
+```
 
-Analytics Queries
-1. User-Role Distribution
-sql
+### Analytics Queries
+
+> 1. User-Role Distribution
+
+```sql
 
 SELECT r.role_name, COUNT(u.user_id) AS user_count
 FROM roles r
 LEFT JOIN users u ON r.role_id = u.role_id
 GROUP BY r.role_name;
+```
 
-2. Material Type Distribution
-sql
+> 2. Material Type Distribution
+
+```sql
 
 SELECT mt.type_name, COUNT(li.item_id) AS item_count
 FROM material_types mt
 LEFT JOIN library_items li ON mt.type_id = li.type_id
 GROUP BY mt.type_name
 ORDER BY item_count DESC;
+```
 
-3. Language Usage Statistics
-sql
+> 3. Language Usage Statistics
+
+```sql
 
 SELECT 
     language,
@@ -220,9 +227,11 @@ SELECT
     ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM library_items), 2) AS percentage
 FROM library_items
 GROUP BY language;
+```
 
-4. Recent Admin Activities
-sql
+?4. Recent Admin Activities
+
+```sql
 
 SELECT u.username, al.action, al.target_object, al.timestamp 
 FROM activity_logs al
@@ -230,19 +239,23 @@ JOIN users u ON al.user_id = u.user_id
 WHERE u.role_id = (SELECT role_id FROM roles WHERE role_name = 'Administrator')
 ORDER BY al.timestamp DESC
 LIMIT 10;
+```
 
-5. Publisher Catalog Size
-sql
+> 5. Publisher Catalog Size
+
+```sql
 
 SELECT p.name AS publisher, COUNT(li.item_id) AS items_published
 FROM publishers p
 LEFT JOIN library_items li ON p.publisher_id = li.publisher_id
 GROUP BY p.name
 ORDER BY items_published DESC;
+```
 
-Entity Relationship Diagram
+### Entity Relationship Diagram
+
 Diagram
-Code
+```Code
 
 erDiagram
     roles ||--o{ users : "1:N"
@@ -253,5 +266,6 @@ erDiagram
     categories ||--o{ library_items : "1:N"
     library_items }o--o{ authors : "N:M via item_authors"
     system_settings }|..|| : "Standalone Config"
+```
 
     Note: Run SHOW CREATE TABLE commands for complete constraint details. Database last modified: 2025-06-18
