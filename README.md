@@ -1,4 +1,4 @@
-<div alighn = "center">
+<div align = "center">
 
 # gplms
 
