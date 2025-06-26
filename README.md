@@ -9,7 +9,7 @@ made with ❤ by students for the open source community
 <img src = "assets/logo.png">
 
 </div>
-## We used these trusted technologies
+## We used these Languages
 
 | HTML | CSS | JS | PHP | MYSQL |
 |-|-|-|-|-|
