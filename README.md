@@ -25,9 +25,11 @@ made with ❤ by students for the open source community
 
 
 <br>
+</div>
+
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![GitHub last commit](https://img.shields.io/github/last-commit/PanagiotisKotsorgios/librarypro)
+![GitHub last commit](https://img.shields.io/github/last-commit/PanagiotisKotsorgios/gplms)
 
 A free and open-source library management system crafted by students with PHP, MySQL, HTML, CSS & JS. Designed for efficient cataloging, user management, and library operations.
 
@@ -47,4 +49,3 @@ A free and open-source library management system crafted by students with PHP, M
 4. **Start managing** your library resources!
 
 
-</div>
