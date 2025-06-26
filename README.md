@@ -24,4 +24,27 @@ made with ❤ by students for the open source community
  ![Apache](https://img.shields.io/badge/Apache-D22128?style=for-the-badge&logo=apache&logoColor=white) | ![MySQL Workbench](https://img.shields.io/badge/MySQL_Workbench-4479A1?style=for-the-badge&logo=mysql&logoColor=white) | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white) |
 
 
+<br>
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![GitHub last commit](https://img.shields.io/github/last-commit/PanagiotisKotsorgios/librarypro)
+
+A free and open-source library management system crafted by students with PHP, MySQL, HTML, CSS & JS. Designed for efficient cataloging, user management, and library operations.
+
+
+## Key Features
+- 📖 Comprehensive material cataloging
+- 👥 User management with role-based access
+- 📚 Author & publisher management
+- ⚙️ Customizable system configuration
+- 📝 Detailed activity auditing
+- 🔒 Role-based access control
+
+## Getting Started
+1. **Download** the latest release from [GitHub Releases](https://github.com/PanagiotisKotsorgios/gplms/releases/latest)
+2. **Install** on any PHP/MySQL environment
+3. **Configure** your library settings
+4. **Start managing** your library resources!
+
+
 </div>
