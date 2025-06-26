@@ -2,6 +2,8 @@
 
 # gplms
 
+<p>A GENERAL PURPOSE LIBRARY MANAGEMENT SYSTEM</p>p
+
 <img src = "assets/logo.png">
 
 </div>
