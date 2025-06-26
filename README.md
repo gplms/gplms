@@ -1,8 +1,8 @@
 <div align = "center">
 
-# gplms
+# GPLMS
 
-<p>A GENERAL PURPOSE LIBRARY MANAGEMENT SYSTEM</p>p
+<p>A GENERAL PURPOSE LIBRARY MANAGEMENT SYSTEM</p>
 
 <img src = "assets/logo.png">
 
