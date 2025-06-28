@@ -36,16 +36,21 @@ made with ❤ by students for the open source community
 
 A free and open-source library management system crafted by students with `PHP`, `MySQL`, `HTML`, `CSS` & `JS`. Designed for efficient cataloging, user management, and library operations.
 
-</div>
 
 
 ## Key Features
-- 📖 Comprehensive material cataloging
-- 👥 User management with role-based access
-- 📚 Author & publisher management
-- ⚙️ Customizable system configuration
-- 📝 Detailed activity auditing
-- 🔒 Role-based access control
+
+| Feature                                | Description                                       |
+|----------------------------------------|---------------------------------------------------|
+| 📖 **Comprehensive Material Cataloging** | Easily organize and manage a wide variety of materials. |
+| 👥 **User Management**                  | Includes role-based access for different user types. |
+| 📚 **Author & Publisher Management**    | Maintain detailed records of authors and publishers. |
+| ⚙️ **Customizable System Configuration**| Tailor the system to your specific requirements.  |
+| 📝 **Detailed Activity Auditing**       | Track and monitor all user actions in the system. |
+| 🔒 **Role-Based Access Control**        | Ensure secure access based on user roles.         |
+
+
+</div>
 
 ## Getting Started
 1. **Download** the latest release from [GitHub Releases](https://github.com/PanagiotisKotsorgios/gplms/releases/latest)
