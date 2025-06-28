@@ -65,7 +65,7 @@ A free and open-source library management system crafted by students with `PHP`,
 | 4️⃣ Start    | Start managing your library resources!                                                    |
 
 
-</div>
+
 
 
 ## Project History
@@ -90,3 +90,4 @@ Your feedback and support are invaluable in helping us grow this project.
 Let’s make it better together!❤😁
 
 
+</div>
