@@ -46,8 +46,10 @@ A free and open-source library management system crafted by students with PHP, M
 
 ## Getting Started
 1. **Download** the latest release from [GitHub Releases](https://github.com/PanagiotisKotsorgios/gplms/releases/latest)
-2. **Install** on any PHP/MySQL environment
+2. **Install** on any PHP/MySQL environment [Tested on apache & phpmyadmin]
 3. **Configure** your library settings
 4. **Start managing** your library resources!
+
+
 
 
