@@ -78,7 +78,7 @@ The initial goal was to create a user-friendly, Agile & efficient Library Manage
 | Name                                          | Role            | GitHub Profile                          |
 |-----------------------------------------------|-----------------|---------------------------------------|
 | [Kotsorgios Panagiotis](https://github.com/PanagiotisKotsorgios)   | Initial Creator |  https://github.com/PanagiotisKotsorgios |
-| Markantonatos Fotis[](https://github.com/Whatever1977) | Initial Creator | https://github.com/Whatever1977 |
+| [Markantonatos Fotis](https://github.com/Whatever1977) | Initial Creator | https://github.com/Whatever1977 |
 
 
 <br><br>
