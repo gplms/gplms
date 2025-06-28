@@ -26,12 +26,13 @@ made with ❤ by students for the open source community
 
 <br><br>
 
-</div>
+
 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![GitHub last commit](https://img.shields.io/github/last-commit/PanagiotisKotsorgios/gplms)
 
+</div>
 
 A free and open-source library management system crafted by students with PHP, MySQL, HTML, CSS & JS. Designed for efficient cataloging, user management, and library operations.
 
