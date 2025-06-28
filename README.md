@@ -50,11 +50,11 @@ A free and open-source library management system crafted by students with `PHP`,
 | 🔒 **Role-Based Access Control**        | Ensure secure access based on user roles.         |
 
 
-</div>
 
 
 
-## Getting Started
+
+### Getting Started
 
 | Step       | Action                                                                                      |
 |------------|---------------------------------------------------------------------------------------------|
@@ -63,7 +63,9 @@ A free and open-source library management system crafted by students with `PHP`,
 | 3️⃣ Configure| Configure your library settings                                                           |
 | 4️⃣ Start    | Start managing your library resources!                                                    |
 
----
+
+</div>
+
 
 ## Project History
 
