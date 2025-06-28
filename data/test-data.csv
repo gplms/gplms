@@ -1,1 +1,21 @@
-
+Title,Type Name,Category Name,Publisher Name,Language,Year,Edition,ISBN,ISSN,Description,Authors (semicolon separated)
+ TXSNB,Magazine,Architecture,Antique Words Publishing,EN,1929,,9783853298187,19228473,Rarely discussed phenomena,John Doe;Jane Roe
+ FLSDI,Journal,History,Antique Words Publishing,EN,1964,1.0,9786663498777,52118955,Antique collection of expert articles,Dr. Alice Monroe
+ KAJAB,Magazine,Mathematics,Rare Knowledge Press,EN,2023,2.0,9786061944374,78640675,Rarely discussed phenomena,Nina Patel;Amit Kumar
+ PNKWB,Journal,Linguistics,Rare Knowledge Press,EN,1999,4.0,9781528178893,81913471,Special edition on uncommon fields,Sophie Chen
+ GBJMV,Magazine,History,Rare Knowledge Press,EN,1977,2.0,9784824012667,93688742,Exploration of niche theories,Dr. Alice Monroe
+ ZFBNB,Journal,Architecture,Rare Knowledge Press,EN,1914,3.0,9787436925740,19442211,A deep dive into rare topics,Nina Patel;Amit Kumar
+ GDCWX,Magazine,Astronomy,Niche Scholars House,EN,1994,4.0,9788708393007,64733089,Special edition on uncommon fields,Prof. Liam O'Neil
+ YWURX,Journal,Philosophy,Antique Words Publishing,EN,1992,,9787146822940,22083094,A deep dive into rare topics,Dr. Alice Monroe
+ PJKXA,Book,Mathematics,Rare Knowledge Press,EN,1986,1.0,9789556139725,,Antique collection of expert articles,Sophie Chen
+ JYNPX,Magazine,Astronomy,Niche Scholars House,EN,1999,,9788178074547,73090632,Antique collection of expert articles,John Doe;Jane Roe
+ LBIMS,Book,Economics,Antique Words Publishing,EN,1962,1.0,9786545754191,,Special edition on uncommon fields,Rare Editorial Team
+ GFTED,Book,Philosophy,Niche Scholars House,EN,1944,4.0,9784112201171,,Special edition on uncommon fields,John Doe;Jane Roe
+ EQCYC,Journal,Economics,Niche Scholars House,EN,2014,4.0,9780953874998,21545079,A deep dive into rare topics,Prof. Liam O'Neil
+ VIHEJ,Journal,Astronomy,Rare Knowledge Press,EN,1936,1.0,9781654435439,42230539,Rarely discussed phenomena,Prof. Liam O'Neil
+ LFYIZ,Journal,Architecture,Rare Knowledge Press,EN,1976,3.0,9782678564416,17161165,Special edition on uncommon fields,Nina Patel;Amit Kumar
+ DZHKJ,Journal,Mathematics,Niche Scholars House,EN,2000,,9783705570709,72072477,Rarely discussed phenomena,Dr. Alice Monroe
+ WJKET,Book,History,Niche Scholars House,EN,1913,2.0,9789195518669,,Antique collection of expert articles,John Doe;Jane Roe
+ VLWTM,Journal,Mathematics,Rare Knowledge Press,EN,1981,3.0,9782316890264,67981099,A deep dive into rare topics,Rare Editorial Team
+ VZZOG,Journal,Architecture,Antique Words Publishing,EN,1971,3.0,9787046464527,93060182,Exploration of niche theories,Sophie Chen
+ RZXCB,Journal,Linguistics,Niche Scholars House,EN,1923,1.0,9780165314176,03676232,Antique collection of expert articles,John Doe;Jane Roe
