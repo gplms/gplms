@@ -1,6 +1,6 @@
 <div align = "center">
 
-# GPLMS
+# GPLMS.
 
 <p>A GENERAL PURPOSE LIBRARY MANAGEMENT SYSTEM</p>
 
