@@ -19,3 +19,7 @@ Below is the required structure for the CSV files:
 | **ISSN**                 | The unique ISSN for journals/magazines. Leave blank for books. |
 | **Description**          | A brief description of the item.                         |
 | **Authors (semicolon separated)** | List of authors, separated by semicolons.         |
+
+---
+
+> see the <a href = "test-data.csv">test-data.csv</a> for more details
