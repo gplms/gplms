@@ -82,8 +82,10 @@ Check out the [project history](HISTORY.md) to learn more about its journey and 
 
 We are committed to improving this project and welcome contributions from the community.  
 
-- **Open Issues:** Report bugs or suggest new features by [opening an issue](https://github.com/PanagiotisKotsorgios/gplms/issues).  
-- **Submit Pull Requests:** Contribute directly by adding new features or fixing existing ones.  
+| Action                 | Description                                                      |
+|------------------------|------------------------------------------------------------------|
+| **Open Issues**        | Report bugs or suggest new features by [opening an issue](https://github.com/PanagiotisKotsorgios/gplms/issues). |
+| **Submit Pull Requests** | Contribute directly by adding new features or fixing existing ones. |
 
 Your feedback and support are invaluable in helping us grow this project.
 
