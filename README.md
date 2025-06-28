@@ -81,8 +81,6 @@ The initial goal was to create a user-friendly, Agile & efficient Library Manage
 | Markantonatos Fotis[](https://github.com/Whatever1977) | Initial Creator | https://github.com/Whatever1977 |
 
 
-Check out the [project history](HISTORY.md) to learn more about its journey and milestones.
-
 <br><br>
 
 ### Contribute
