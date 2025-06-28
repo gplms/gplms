@@ -30,7 +30,6 @@ This folder contains the complete source code of the system. It includes all cus
 - Ensure you maintain the folder structure to avoid breaking dependencies.
 - For any issues during setup, refer to the documentation or contact support.
 
----
 
 ## Contribute
 
