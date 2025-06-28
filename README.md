@@ -76,9 +76,9 @@ The initial goal was to create a user-friendly, Agile & efficient Library Manage
 
 Check out the [project history](HISTORY.md) to learn more about its journey and milestones.
 
----
+<br><br>
 
-## Contribute
+### Contribute
 
 We are committed to improving this project and welcome contributions from the community.  
 
