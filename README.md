@@ -38,7 +38,7 @@ A free and open-source library management system crafted by students with `PHP`,
 
 
 
-## Key Features
+### Key Features
 
 | Feature                                | Description                                       |
 |----------------------------------------|---------------------------------------------------|
