@@ -70,8 +70,15 @@ A free and open-source library management system crafted by students with `PHP`,
 
 ### Project History
 
-This project began as a school project at **[<a href = "https://www.saekmesol.gr/">SAEK MESOLOGHIOY</a>]**, developed by a 2  Software Engineering students during their final six months of study. 
+This project began as a school project at **[<a href = "https://www.saekmesol.gr/">SAEK MESOLOGHIOY</a>]**, developed by a 2  Software Engineering students team during their final six months of study. 
 The initial goal was to create a user-friendly, Agile & efficient Library Management System. 
+
+This project was initially created by:
+
+| Name                                          | Role            | GitHub Profile                          |
+|-----------------------------------------------|-----------------|---------------------------------------|
+| [Fotis Markantonatos](https://github.com/FotisMarkantonatos)   | Initial Creator | https://github.com/FotisMarkantonatos |
+| [Kotsorgios Panagiotis](https://github.com/PanagiotisKotsorgios) | Initial Creator | https://github.com/PanagiotisKotsorgios |
 
 
 Check out the [project history](HISTORY.md) to learn more about its journey and milestones.
