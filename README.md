@@ -37,6 +37,7 @@ made with ❤ by students for the open source community
 A free and open-source library management system crafted by students with `PHP`, `MySQL`, `HTML`, `CSS` & `JS`. Designed for efficient cataloging, user management, and library operations.
 
 
+<br><br>
 
 ### Key Features
 
@@ -52,7 +53,7 @@ A free and open-source library management system crafted by students with `PHP`,
 
 
 
-
+<br>
 
 ### Getting Started
 
