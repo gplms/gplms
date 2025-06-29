@@ -1,1 +1,54 @@
 
+---
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "[FEATURE] "
+labels: ["enhancement"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+
+        Please describe the feature or improvement you would like to see.
+
+  - type: input
+    id: feature_summary
+    attributes:
+      label: "Feature Summary"
+      description: "Provide a concise title or summary of the feature."
+      placeholder: "e.g., Add dark mode support"
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_details
+    attributes:
+      label: "Feature Details"
+      description: "Explain the feature in detail, including use cases and benefits."
+      placeholder: |
+        Why is this feature important?
+        How would it improve the project?
+        Any examples or references?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      description: "How important is this feature to you?"
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: "Additional Information"
+      description: "Any other details, screenshots, or context."
+      placeholder: "Add any additional info here."
