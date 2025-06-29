@@ -75,7 +75,7 @@
   ><i class="fa-solid fa-eye"></i> &nbsp;&nbsp;View / Search Items</button>
            </a>
   
-           <a href = "https://www.github.com">
+           <a href = "https://github.com/PanagiotisKotsorgios/gplms/tree/main/docs">
   <button 
     style="
       background: #f8f9fa;
