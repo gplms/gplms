@@ -99,7 +99,7 @@ The initial goal was to create a user-friendly, Agile & Efficient Library Manage
 
 <a href = "https://www.saekmesol.gr/">The place it all started</a>
 
-<br>
+<br><br><br>
 
 `This project was initially created by:`
 
