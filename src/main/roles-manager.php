@@ -81,6 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $pdo->commit();
+            
+            // Redirect after form submission
+            header("Location: roles-manager.php");
+            exit;
         } catch (Exception $e) {
             $pdo->rollBack();
             $error_msg = "Error: " . $e->getMessage();
@@ -99,6 +103,10 @@ if (isset($_GET['status_change']) && isset($_GET['id'])) {
         
         $success_msg = "Role status updated successfully!";
         logActivity($pdo, $_SESSION['user_id'], 'UPDATE', 'roles', 'Changed status for role ID: '.$id);
+        
+        // Redirect after status change
+        header("Location: roles-manager.php");
+        exit;
     } catch (Exception $e) {
         $error_msg = "Error updating status: " . $e->getMessage();
     }
@@ -121,10 +129,24 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'role' && isset($_GET['id'])) 
             $stmt->execute([$id]);
             $success_msg = "Role deleted successfully!";
             logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'roles', 'Deleted role ID: '.$id);
+            
+            // Redirect after delete
+            header("Location: roles-manager.php");
+            exit;
         }
     } catch (Exception $e) {
         $error_msg = "Error deleting role: " . $e->getMessage();
     }
+}
+
+// Handle edit role request
+if (isset($_GET['edit_role'])) {
+    // Store role ID in session for modal handling
+    $_SESSION['edit_role_id'] = (int)$_GET['edit_role'];
+    
+    // Redirect to clear URL parameters
+    header("Location: roles-manager.php");
+    exit;
 }
 
 // Get roles with user counts
@@ -132,12 +154,15 @@ $roles = $pdo->query("SELECT r.*,
                      (SELECT COUNT(*) FROM users u WHERE u.role_id = r.role_id) AS user_count
                      FROM roles r ORDER BY role_id")->fetchAll();
 
-// Get role for editing
+// Check if we have a stored edit role ID
 $edit_role = null;
-if (isset($_GET['edit_role'])) {
+if (isset($_SESSION['edit_role_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM roles WHERE role_id = ?");
-    $stmt->execute([$_GET['edit_role']]);
+    $stmt->execute([$_SESSION['edit_role_id']]);
     $edit_role = $stmt->fetch();
+    
+    // Clear the session variable after use
+    unset($_SESSION['edit_role_id']);
 }
 
 // Get data for statistics and charts
