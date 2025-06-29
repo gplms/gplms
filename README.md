@@ -95,6 +95,10 @@ A **free** and **open-source** library management system crafted by students wit
 This project began as a school project at **[<a href = "https://www.saekmesol.gr/">SAEK MESOLOGHIOY</a>]**, developed by a 2  Software Engineering students team during their final six months of study. 
 The initial goal was to create a user-friendly, Agile & Efficient Library Management System. 
 
+<img src = "https://www.saekmesol.gr/wp-content/uploads/2025/02/logo_saek-660x420.png">
+
+<br>
+
 `This project was initially created by:`
 
 | Name                                          | Role            | GitHub Profile                          |
