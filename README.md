@@ -80,7 +80,7 @@ A **free** and **open-source** library management system crafted by students wit
 | 4. **Access the Application** | Open your browser and navigate to `http://localhost/src`. You're ready to go! |
 | 5. **Login** | Use the default credentials below to log in: <br> **Username:** `admin` <br> **Password:** `12345` |
 
----
+
 
 ### Notes:
  
