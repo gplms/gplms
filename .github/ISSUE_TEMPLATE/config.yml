@@ -1,4 +1,4 @@
-blank_issues_enabled: false  # disables creating issues without templates
+blank_issues_enabled: true  # disables creating issues without templates
 contact_links:
   - name: "Support"
     url: "pkotsorgios654@gmail.com"
