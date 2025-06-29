@@ -1,0 +1,22 @@
+blank_issues_enabled: false  # disables creating issues without templates
+contact_links:
+  - name: "Support"
+    url: "pkotsorgios654@gmail.com"
+    about: "Get help with using the project"
+
+issue_template_selector:
+  title: "What kind of issue do you want to create?"
+  description: "Please choose the type that best fits your issue."
+  template_buttons:
+    bug_report:
+      title: "Report a bug"
+      description: "Found a bug or unexpected behavior? Report it now please!"
+      labels: ["bug", "needs-triage"]
+      assignees: ["maintainer1"]
+      name: "bug_report.yml"
+    feature_request:
+      title: "Request a feature"
+      description: "Have an idea for a new feature? Tell us!"
+      labels: ["enhancement"]
+      assignees: []
+      name: "feature_request.yml"
