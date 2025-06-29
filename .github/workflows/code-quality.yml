@@ -1,0 +1,27 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          
+      - name: Install PHP CodeSniffer
+        run: composer global require squizlabs/php_codesniffer
+
+      - name: Run PHP CodeSniffer
+        run: ~/.composer/vendor/bin/phpcs --standard=PSR12 ./
