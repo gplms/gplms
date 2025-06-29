@@ -21,7 +21,10 @@ body:
     attributes:
       label: "Steps to Reproduce"
       description: "Describe the steps needed to reproduce the bug in detail from start to end."
-      value: "1. \n2. \n3. "  # Numbered placeholders
+      value: |
+        1. Open the application.
+        2. Navigate to the settings page.
+        3. Click on the 'Save Changes' button.
       render: markdown
     validations:
       required: true
@@ -30,6 +33,13 @@ body:
     attributes:
       label: "Expected vs Actual Behavior"
       description: "What did you expect to happen? What actually happened?"
+      value: |
+        Expected:
+        - The settings should save successfully.
+        - A confirmation message should appear.
+        
+        Actual:
+        - The application crashes with an error message.
       placeholder: "Expected: The app loads successfully.\nActual: The app crashes with an error message."
     validations:
       required: true
