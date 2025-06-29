@@ -51,13 +51,12 @@ body:
       label: "Bug Impact"
       description: "Select all that apply."
       options:
-        - label: Critical (application unusable)
-        - label: Major (significant issue but not blocking)
-        - label: Minor (small issue, not a priority)
+        - label: "Critical (application unusable)"
+        - label: "Major (significant issue but not blocking)"
+        - label: "Minor (small issue, not a priority)"
   - type: textarea
     id: additional_info
     attributes:
       label: "Additional Information"
       description: "Add any other details, logs, or screenshots that may help."
       placeholder: "Attach logs or screenshots here."
-      value: " "  # Critical fix - non-breaking space
