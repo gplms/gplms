@@ -1,9 +1,9 @@
 ---
 name: Bug Report
-about: Use this template to report a bug
+description: Use this template to report a bug  # Changed from 'about'
 title: "[BUG] Descriptive bug title"
-labels: bug
-assignees: ""
+labels: [bug]  # Array format recommended
+assignees: []  # Must be array (empty array instead of empty string)
 body:
   - type: markdown
     attributes:
@@ -14,7 +14,6 @@ body:
       label: "Bug Summary"
       description: "Provide a brief summary of the bug."
       placeholder: "e.x. The application crashes on startup."
-      value: ""
     validations:
       required: true
   - type: textarea
@@ -22,10 +21,7 @@ body:
     attributes:
       label: "Steps to Reproduce"
       description: "Describe the steps needed to reproduce the bug in detail from start to end."
-      value: |
-        1. 
-        2. 
-        3. 
+      value: "1. \n2. \n3. "  # Must be non-empty string
       render: markdown
     validations:
       required: true
@@ -64,4 +60,4 @@ body:
       label: "Additional Information"
       description: "Add any other details, logs, or screenshots that may help."
       placeholder: "Attach logs or screenshots here."
-      value: ""
+      value: " "  # Non-empty placeholder value
