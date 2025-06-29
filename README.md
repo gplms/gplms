@@ -71,7 +71,7 @@ A **free** and **open-source** library management system crafted by students wit
 ### Project History
 
 This project began as a school project at **[<a href = "https://www.saekmesol.gr/">SAEK MESOLOGHIOY</a>]**, developed by a 2  Software Engineering students team during their final six months of study. 
-The initial goal was to create a user-friendly, Agile & efficient Library Management System. 
+The initial goal was to create a user-friendly, Agile & Efficient Library Management System. 
 
 `This project was initially created by:`
 
