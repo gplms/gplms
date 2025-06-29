@@ -1,0 +1,161 @@
+
+        
+        
+        
+        
+
+        
+        /* Main Content */
+        #content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: calc(100vh - 70px);
+            padding-top: 90px;
+        }
+        
+        /* Admin Cards */
+        .admin-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 20px;
+            background: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-header span {
+            font-weight: 700;
+            color: var(--dark-text);
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Activity Log Table */
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .log-table th {
+            background-color: #f8f9fc;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark-text);
+            border-bottom: 2px solid #e3e6f0;
+        }
+        
+        .log-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e3e6f0;
+            vertical-align: top;
+        }
+        
+        .log-table tr:hover {
+            background-color: #f8f9fc;
+        }
+        
+        .log-id {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .log-action {
+            font-weight: 500;
+        }
+        
+        .log-details {
+            max-width: 300px;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+        }
+        
+        .log-timestamp {
+            font-size: 0.9rem;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .page-item {
+            margin: 0 5px;
+        }
+        
+        .page-link {
+            color: var(--primary-color);
+            border: 1px solid #d1d3e2;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .page-link:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+        }
+        
+        /* Status indicators */
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        
+        .status-active {
+            background: #e0f7e9;
+            color: #13855c;
+        }
+        
+        .status-inactive {
+            background: #fdecea;
+            color: #e74a3b;
+        }
+        
+        /* Filters */
+        .filter-container {
+            background: #f8f9fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-text);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-bottom: 20px;
+        }
+        
+

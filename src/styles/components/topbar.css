@@ -1,0 +1,28 @@
+ /* Topbar Styles */
+        .topbar {
+            height: 70px;
+            background: #fff;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        .btn-toggle {
+            background: transparent;
+            border: none;
+            color: var(--dark-text);
+            font-size: 1.2rem;
+            margin-right: 15px;
+        }
+        
+        .topbar h4 {
+            margin: 0;
+            font-weight: 700;
+            color: var(--dark-text);
+            flex-grow: 1;
+        }

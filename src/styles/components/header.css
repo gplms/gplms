@@ -1,0 +1,95 @@
+/* Header Styles */
+header {
+    background-color: var(--primary) !important;
+    color: var(--white) !important;
+    padding: 1rem 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.header-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    max-width: 1300px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+.logo-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+.logo {
+    width: 60px !important;
+    height: 60px !important;
+    background: linear-gradient(135deg, var(--secondary), var(--accent)) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+}
+
+.logo-text {
+    font-family: 'Merriweather', serif !important;
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+}
+
+.logo-text span {
+    color: var(--secondary) !important;
+}
+
+nav ul {
+    display: flex !important;
+    list-style: none !important;
+    gap: 25px !important;
+}
+
+nav a {
+    color: var(--white) !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 1.1rem !important;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+nav a:hover {
+    color: var(--secondary) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Remove underline animation */
+nav a::after {
+    content: none !important;
+}
+
+/* Button Styles */
+.login-btn {
+    background-color: var(--secondary) !important;
+    color: white !important;
+    padding: 10px 20px !important;
+    border: 3px solid var(--secondary) !important;
+    border-radius: 30px !important;
+    font-weight: 600 !important;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease !important;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Hover Effects */
+.login-btn:hover {
+    background-color: white !important; /* Invert background color */
+    color: var(--secondary) !important; /* Change text color */
+    border-color: var(--secondary) !important; /* Add a contrasting border color */
+    transform: scale(1.05) !important; /* Slightly enlarge the button */
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.15) !important; /* Add a deeper shadow */
+}
