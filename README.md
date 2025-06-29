@@ -97,6 +97,8 @@ The initial goal was to create a user-friendly, Agile & Efficient Library Manage
 
 <img src = "https://www.saekmesol.gr/wp-content/uploads/2025/02/logo_saek-660x420.png">
 
+<a href = "https://www.saekmesol.gr/">The place it all started</a>
+
 <br>
 
 `This project was initially created by:`
