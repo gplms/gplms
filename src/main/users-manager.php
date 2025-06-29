@@ -86,6 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $pdo->commit();
+            
+            // Redirect to clear parameters after successful form submission
+            header("Location: users-manager.php");
+            exit;
         } catch (Exception $e) {
             $pdo->rollBack();
             $error_msg = "Error: " . $e->getMessage();
@@ -104,6 +108,10 @@ if (isset($_GET['status_change']) && isset($_GET['id'])) {
         
         $success_msg = "User status updated successfully!";
         logActivity($pdo, $current_user_id, 'UPDATE', 'users', 'Changed status for user ID: '.$id);
+        
+        // Redirect after status change
+        header("Location: users-manager.php");
+        exit;
     } catch (Exception $e) {
         $error_msg = "Error updating status: " . $e->getMessage();
     }
@@ -122,22 +130,39 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'user' && isset($_GET['id'])) 
             $stmt->execute([$id]);
             $success_msg = "User deleted successfully!";
             logActivity($pdo, $current_user_id, 'DELETE', 'users', 'Deleted user ID: '.$id);
+            
+            // Redirect after delete
+            header("Location: users-manager.php");
+            exit;
         }
     } catch (Exception $e) {
         $error_msg = "Error deleting user: " . $e->getMessage();
     }
 }
 
+// Handle edit user request
+if (isset($_GET['edit_user'])) {
+    // Store user ID in session for modal handling
+    $_SESSION['edit_user_id'] = (int)$_GET['edit_user'];
+    
+    // Redirect to clear URL parameters
+    header("Location: users-manager.php");
+    exit;
+}
+
 // Get users and roles
 $users = $pdo->query("SELECT * FROM users")->fetchAll();
 $roles = $pdo->query("SELECT * FROM roles")->fetchAll();
 
-// Get user for editing
+// Check if we have a stored edit user ID
 $edit_user = null;
-if (isset($_GET['edit_user'])) {
+if (isset($_SESSION['edit_user_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
-    $stmt->execute([$_GET['edit_user']]);
+    $stmt->execute([$_SESSION['edit_user_id']]);
     $edit_user = $stmt->fetch();
+    
+    // Clear the session variable after use
+    unset($_SESSION['edit_user_id']);
 }
 ?>
 <!DOCTYPE html>
@@ -149,17 +174,12 @@ if (isset($_GET['edit_user'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="../styles/users-manager-gen-styles.css" rel="stylesheet">
-
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
-    
 </head>
 <body>
-       <?php include '../components/user-sidebar.php'; ?>
-
-       <?php include '../components/user-main-content.php'; ?>
-
-       <?php include '../components/user-modal.php'; ?>
-
+    <?php include '../components/user-sidebar.php'; ?>
+    <?php include '../components/user-main-content.php'; ?>
+    <?php include '../components/user-modal.php'; ?>
 
     <!-- Bootstrap & jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
