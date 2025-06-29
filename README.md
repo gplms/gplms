@@ -71,10 +71,22 @@ A **free** and **open-source** library management system crafted by students wit
 
 > Quick Test Setup
 
+
 | Step | Action |
 |------|--------|
-| 1. Requirements | Download and install xaamp on your system |
+| 1. **Requirements** | Download and install [XAMPP](https://www.apachefriends.org/) on your system. |
+| 2. **Setup** | Copy the `src` folder of the project into XAMPP's `htdocs` directory. |
+| 3. **Database** | Import the `importer.sql` file located in the `database` folder into phpMyAdmin. |
+| 4. **Access the Application** | Open your browser and navigate to `http://localhost/src`. You're ready to go! |
+| 5. **Login** | Use the default credentials below to log in: <br> **Username:** `admin` <br> **Password:** `12345` |
 
+---
+
+## Notes:
+- Make sure your XAMPP server is running before accessing the application.
+- For additional configuration or troubleshooting, refer to the project documentation.
+
+<br>
 <br>
 
 ### Project History
