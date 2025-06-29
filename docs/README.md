@@ -1,1 +1,1 @@
-> Goin to be added soon
+> Going to be added soon
