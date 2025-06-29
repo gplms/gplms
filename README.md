@@ -69,7 +69,7 @@ A **free** and **open-source** library management system crafted by students wit
 
 ### Xaamp Instructions 
 
-> Quick Test Setup
+`Quick Test Setup`
 
 
 | Step | Action |
