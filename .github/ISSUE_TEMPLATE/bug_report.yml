@@ -1,9 +1,9 @@
 ---
 name: Bug Report
-description: Use this template to report a bug  # Changed from 'about'
+description: Use this template to report a bug
 title: "[BUG] Descriptive bug title"
-labels: [bug]  # Array format recommended
-assignees: []  # Must be array (empty array instead of empty string)
+labels: [bug]
+assignees: []
 body:
   - type: markdown
     attributes:
@@ -21,7 +21,7 @@ body:
     attributes:
       label: "Steps to Reproduce"
       description: "Describe the steps needed to reproduce the bug in detail from start to end."
-      value: "1. \n2. \n3. "  # Must be non-empty string
+      value: "1. \n2. \n3. "  # Numbered placeholders
       render: markdown
     validations:
       required: true
@@ -60,4 +60,4 @@ body:
       label: "Additional Information"
       description: "Add any other details, logs, or screenshots that may help."
       placeholder: "Attach logs or screenshots here."
-      value: " "  # Non-empty placeholder value
+      value: " "  # Critical fix - non-breaking space
