@@ -65,6 +65,15 @@ A **free** and **open-source** library management system crafted by students wit
 | 4️⃣ Start    | Start managing your library resources!                                                    |
 
 
+<br>
+
+### Xaamp Instructions 
+
+> Quick Test Setup
+
+| Step | Action |
+|------|--------|
+| 1. Requirements | Download and install xaamp on your system |
 
 <br>
 
