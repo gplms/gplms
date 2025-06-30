@@ -65,6 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $pdo->commit();
+            
+            // Redirect after form submission
+            header("Location: authors-manager.php");
+            exit;
         } catch (Exception $e) {
             $pdo->rollBack();
             $error_msg = "Error: " . $e->getMessage();
@@ -92,10 +96,24 @@ if (isset($_GET['delete'])) {
                 $success_msg = "Author deleted successfully!";
                 logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'authors', 'Deleted author ID: '.$id);
             }
+            
+            // Redirect after delete
+            header("Location: authors-manager.php");
+            exit;
         } catch (Exception $e) {
             $error_msg = "Error deleting author: " . $e->getMessage();
         }
     }
+}
+
+// Handle edit author request
+if (isset($_GET['edit_author'])) {
+    // Store author ID in session for modal handling
+    $_SESSION['edit_author_id'] = (int)$_GET['edit_author'];
+    
+    // Redirect to clear URL parameters
+    header("Location: authors-manager.php");
+    exit;
 }
 
 // PAGINATION MUST COME BEFORE STATS CALCULATION
@@ -135,12 +153,15 @@ $stats = [
     'recently_updated' => $pdo->query("SELECT COUNT(*) FROM authors WHERE last_modified >= CURDATE() - INTERVAL 7 DAY")->fetchColumn()
 ];
 
-// Get items for editing
+// Check if we have a stored edit author ID
 $edit_author = null;
-if (isset($_GET['edit_author'])) {
+if (isset($_SESSION['edit_author_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM authors WHERE author_id = ?");
-    $stmt->execute([$_GET['edit_author']]);
+    $stmt->execute([$_SESSION['edit_author_id']]);
     $edit_author = $stmt->fetch();
+    
+    // Clear the session variable after use
+    unset($_SESSION['edit_author_id']);
 }
 
 // Get chart data
@@ -175,375 +196,7 @@ $recently_updated = $pdo->query("
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="../styles/component/components/sidebar.php">
             <link rel="icon" type="image/png" href="../../assets/logo-l.png">
-    <style>
-        :root {
-            --primary-color: #4e73df;
-            --secondary-color: #858796;
-            --success-color: #1cc88a;
-            --info-color: #36b9cc;
-            --warning-color: #f6c23e;
-            --danger-color: #e74a3b;
-            --light-color: #f8f9fc;
-            --dark-color: #5a5c69;
-        }
-        
-    
-        
-     .topbar {
-    background: white;
-    padding: 15px 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1600px;
-    margin-left: auto; /* Pushes the element to the right */
-    margin-right: 20px; /* Add space from the right edge */
-}
-
-        
-        .topbar h4 {
-            margin: 0;
-            color: var(--dark-color);
-            
-        }
-        
-        .admin-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            margin-bottom: 20px;
-                max-width: 800px;
-    margin-left: auto; /* Pushes the element to the right */
-    margin-right: 20px; /* Add space from the right edge */
-        }
-        
-        .card-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e3e6f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            color: var(--dark-color);
-            
-        }
-        
-        .card-body {
-            padding: 20px;
-        }
-        
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-                max-width: 1600px;
-    margin-left: auto; /* Pushes the element to the right */
-    margin-right: 20px; /* Add space from the right edge */
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            padding: 15px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            font-size: 1.5rem;
-        }
-        
-        .stat-icon.authors { background: rgba(78, 115, 223, 0.2); color: var(--primary-color); }
-        .stat-icon.active { background: rgba(28, 200, 138, 0.2); color: var(--success-color); }
-        .stat-icon.items { background: rgba(54, 185, 204, 0.2); color: var(--info-color); }
-        .stat-icon.updated { background: rgba(246, 194, 62, 0.2); color: var(--warning-color); }
-        
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        
-        .stat-label {
-            color: var(--secondary-color);
-            font-size: 0.85rem;
-        }
-        
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .admin-table th, 
-        .admin-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e3e6f0;
-        }
-        
-        .admin-table th {
-            background-color: #f8f9fc;
-            color: var(--dark-color);
-            font-weight: 600;
-        }
-        
-        .admin-table tr {
-            transition: background-color 0.2s;
-        }
-        
-        .admin-table tr:hover {
-            background-color: #f8f9fc;
-            cursor: pointer;
-        }
-        
-        .bio-preview {
-            max-width: 250px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .action-btns {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            transition: all 0.2s;
-        }
-        
-        .btn-edit {
-            background-color: rgba(78, 115, 223, 0.1);
-            color: var(--primary-color);
-        }
-        
-        .btn-edit:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .btn-delete {
-            background-color: rgba(231, 74, 59, 0.1);
-            color: var(--danger-color);
-        }
-        
-        .btn-delete:hover {
-            background-color: var(--danger-color);
-            color: white;
-        }
-        
-        /* Pagination Styles */
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-            padding: 10px 0;
-        }
-        
-        .pagination {
-            display: flex;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            gap: 5px;
-        }
-        
-        .page-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .page-link {
-            display: block;
-            padding: 8px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-decoration: none;
-            color: #4e73df;
-            background-color: white;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-        
-        .page-link:hover {
-            background-color: #f8f9fc;
-            border-color: #d1d3e2;
-        }
-        
-        .page-item.active .page-link {
-            background-color: #4e73df;
-            border-color: #4e73df;
-            color: white;
-        }
-        
-        .page-item.disabled .page-link {
-            color: #b7b9cc;
-            pointer-events: none;
-        }
-        
-        .page-ellipsis {
-            padding: 8px 12px;
-            color: #6e707e;
-        }
-        
-        /* Author Detail Modal */
-        .author-detail-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.7);
-            z-index: 1050;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .author-detail-card {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .author-header {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-            color: white;
-            padding: 20px;
-            position: relative;
-        }
-        
-        .author-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            font-size: 40px;
-        }
-        
-        .author-name {
-            font-size: 24px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 5px;
-        }
-        
-        .author-id {
-            text-align: center;
-            opacity: 0.8;
-            font-size: 14px;
-        }
-        
-        .author-body {
-            padding: 25px;
-        }
-        
-        .author-section {
-            margin-bottom: 20px;
-        }
-        
-        .section-title {
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .section-title i {
-            margin-right: 8px;
-        }
-        
-        .author-bio {
-            line-height: 1.6;
-            color: #555;
-        }
-        
-        .author-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .stat-box {
-            background: #f8f9fc;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-        
-        .stat-label {
-            font-size: 13px;
-            color: #6e707e;
-        }
-        
-        .author-footer {
-            padding: 15px 25px;
-            border-top: 1px solid #e3e6f0;
-            display: flex;
-            justify-content: flex-end;
-        }
-        
-        .close-modal {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255,255,255,0.2);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .close-modal:hover {
-            background: rgba(255,255,255,0.3);
-            transform: rotate(90deg);
-        }
-        
-        .chart-container {
-            height: 300px;
-            position: relative;
-        }
-
-        
-    </style>
+   <link rel="stylesheet" href="../styles/authors.css">
     <link rel="stylesheet" href="../styles/components/sidebar.css">
 
 </head>
@@ -660,10 +313,10 @@ $recently_updated = $pdo->query("
                                             <td><?= $author['item_count'] ?></td>
                                             <td>
                                                 <div class="action-btns">
-                                                    <a href="?edit_author=<?= $author['author_id'] ?>" class="action-btn btn-edit" title="Edit">
+                                                    <a href="?edit_author=<?= $author['author_id'] ?>&page=<?= $page ?>" class="action-btn btn-edit" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="?delete=author&id=<?= $author['author_id'] ?>" class="action-btn btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this author?')">
+                                                    <a href="?delete=author&id=<?= $author['author_id'] ?>&page=<?= $page ?>" class="action-btn btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this author?')">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
                                                 </div>
@@ -959,7 +612,7 @@ $recently_updated = $pdo->query("
                 
                 // Set edit button link
                 document.getElementById('editAuthorBtn').onclick = function() {
-                    window.location.href = `?edit_author=${authorId}`;
+                    window.location.href = `?edit_author=${authorId}&page=<?= $page ?>`;
                 };
                 
                 detailModal.style.display = 'flex';
