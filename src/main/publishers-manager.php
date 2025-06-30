@@ -13,7 +13,6 @@ if (!isset($_SESSION['role'])) {
 // Load configuration file containing constants and environment settings
 require_once '../conf/config.php';
 
-
 // Add website and last_modified columns to publishers if needed
 try {
     $pdo->query("SELECT website FROM publishers LIMIT 1");
@@ -74,6 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $pdo->commit();
+            
+            // Redirect after form submission
+            header("Location: publishers-manager.php");
+            exit;
         } catch (Exception $e) {
             $pdo->rollBack();
             $error_msg = "Error: " . $e->getMessage();
@@ -101,10 +104,24 @@ if (isset($_GET['delete'])) {
                 $success_msg = "Publisher deleted successfully!";
                 logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'publishers', 'Deleted publisher ID: '.$id);
             }
+            
+            // Redirect after delete
+            header("Location: publishers-manager.php");
+            exit;
         } catch (Exception $e) {
             $error_msg = "Error deleting publisher: " . $e->getMessage();
         }
     }
+}
+
+// Handle edit publisher request
+if (isset($_GET['edit_publisher'])) {
+    // Store publisher ID in session for modal handling
+    $_SESSION['edit_publisher_id'] = (int)$_GET['edit_publisher'];
+    
+    // Redirect to clear URL parameters
+    header("Location: publishers-manager.php");
+    exit;
 }
 
 // Get publishers with item counts
@@ -115,12 +132,15 @@ $publishers = $pdo->query("
     GROUP BY p.publisher_id
 ")->fetchAll();
 
-// Get items for editing
+// Check if we have a stored edit publisher ID
 $edit_publisher = null;
-if (isset($_GET['edit_publisher'])) {
+if (isset($_SESSION['edit_publisher_id'])) {
     $stmt = $pdo->prepare("SELECT * FROM publishers WHERE publisher_id = ?");
-    $stmt->execute([$_GET['edit_publisher']]);
+    $stmt->execute([$_SESSION['edit_publisher_id']]);
     $edit_publisher = $stmt->fetch();
+    
+    // Clear the session variable after use
+    unset($_SESSION['edit_publisher_id']);
 }
 
 // Get statistics for dashboard
@@ -175,7 +195,6 @@ $recently_updated = $pdo->query("
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <?php include '../components/sidebar.php'; ?>
     <?php include '../components/publisher-main-content.php'; ?>
-
 
     
     <?php include '../components/pub-modal.php'; ?>
