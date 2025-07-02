@@ -263,6 +263,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-send:hover {
             background-color: #2980b9;
         }
+
+        /* New button styling for Go Back */
+        .btn-back-dashboard {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            margin-right: 8px;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-back-dashboard:hover {
+            background-color: #495057;
+            color: #fff;
+            text-decoration: none;
+        }
         
         .info-section {
             flex: 1;
@@ -409,7 +432,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 
-    
     <div class="container">
         <div class="contact-container">
             <div class="contact-header">
@@ -420,6 +442,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="contact-content">
                 <!-- Contact Form -->
                 <div class="contact-form">
+                    <!-- Go Back to Dashboard Button -->
+                    <a href="search.php" class="btn-back-dashboard">
+                        <i class="fas fa-arrow-left"></i> Go Back to Dashboard
+                    </a>
                     <h2 class="info-title"><?= $lang['send_message'] ?></h2>
                     
                     <?php if ($message_sent): ?>

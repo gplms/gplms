@@ -63,9 +63,37 @@
                                 <?= $lang['role'] ?> <span class="text-danger">*</span>
                             </label>
                             <select name="role_id" class="form-select" required>
-                                <?php foreach ($roles as $role): ?>
-                                    <option value="<?= $role['role_id'] ?>" 
-                                        <?= ($edit_user && $edit_user['role_id'] == $role['role_id']) ? 'selected' : '' ?>>
+                                <?php
+                                // Re-order roles: default_user_role (from db) first, then the rest
+                                $roles_to_list = $roles;
+                                if (!$edit_user && isset($default_user_role)) {
+                                    $default_role_obj = null;
+                                    $other_roles = [];
+                                    foreach ($roles as $role) {
+                                        if ((string)$role['role_id'] === (string)$default_user_role || $role['role_name'] === $default_user_role) {
+                                            $default_role_obj = $role;
+                                        } else {
+                                            $other_roles[] = $role;
+                                        }
+                                    }
+                                    if ($default_role_obj) {
+                                        // Place default first
+                                        $roles_to_list = array_merge([$default_role_obj], $other_roles);
+                                    }
+                                }
+                                foreach ($roles_to_list as $role):
+                                    // For add-user modal (not edit), preselect the default user role
+                                    $selected = '';
+                                    if ($edit_user && $edit_user['role_id'] == $role['role_id']) {
+                                        $selected = 'selected';
+                                    } elseif (
+                                        !$edit_user && isset($default_user_role) &&
+                                        ((string)$role['role_id'] === (string)$default_user_role || $role['role_name'] === $default_user_role)
+                                    ) {
+                                        $selected = 'selected';
+                                    }
+                                ?>
+                                    <option value="<?= $role['role_id'] ?>" <?= $selected ?>>
                                         <?= htmlspecialchars($role['role_name']) ?>
                                     </option>
                                 <?php endforeach; ?>

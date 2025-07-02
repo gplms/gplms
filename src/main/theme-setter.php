@@ -1,6 +1,7 @@
 <?php
 // detect_theme.php
 session_start();
+
 require_once '../conf/config.php';
 
 // Get theme from database (default to light if not set)

@@ -657,6 +657,18 @@ $recently_updated = $pdo->query("
                 this.style.textOverflow = 'ellipsis';
             });
         });
+
+     
+    document.addEventListener('DOMContentLoaded', function () {
+        var authorModal = document.getElementById('authorModal');
+        if (authorModal) {
+            authorModal.addEventListener('hidden.bs.modal', function () {
+                // Always reload the page after the modal is closed to reset state
+                window.location.href = 'authors-manager.php<?= $page > 1 ? '?page=' . $page : '' ?>';
+            });
+        }
+    });
+
     </script>
 </body>
 </html>

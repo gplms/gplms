@@ -57,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)");
                 $stmt->execute([$user['user_id'], $token, $expires]);
 
-                $reset_link = "https://" . $_SERVER['HTTP_HOST'] . "/GENERAL-LMS-PROJECT/src/main/reset_password.php?token=" . urlencode($token);
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+                $reset_link = $protocol . "://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . "/reset_password.php?token=" . urlencode($token);
                 
                 // Email content
                 $subject = $lang['password_reset_request'];
