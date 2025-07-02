@@ -1,0 +1,15 @@
+# Force error docs from root-relative path
+ErrorDocument 404 /GENERAL-LMS-PROJECT/src/main/404.php
+ErrorDocument 403 /GENERAL-LMS-PROJECT/src/main/403.php
+ErrorDocument 303 /GENERAL-LMS-PROJECT/src/main/403.php
+
+# Stop WordPress .htaccess from hijacking
+RewriteEngine On
+RewriteBase /GENERAL-LMS-PROJECT/
+
+# Prevent rewrite if file/directory exists
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route everything else through index.php (optional)
+# RewriteRule ^(.*)$ index.php [QSA,L]
