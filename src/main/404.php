@@ -1,11 +1,17 @@
+<?php
+// Start session and include translation component
+session_start();
+require_once '../conf/config.php';
+require_once '../conf/translation.php'; // Include the translation component
+?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $default_language === 'GR' ? 'el' : 'en' ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | 404</title>
+    <title>GPLMS - <?= $lang['404_page_title'] ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
 
     <style>
@@ -142,24 +148,22 @@
     <div class="error-container">
         <div class="error-header">
             <div class="error-number">404</div>
-            <h1 class="error-title">Page Not Found</h1>
+            <h1 class="error-title"><?= $lang['page_not_found_title'] ?></h1>
         </div>
         
         <p class="error-message">
-            The requested page could not be located. It may have been moved, deleted, or the URL was entered incorrectly.
+            <?= $lang['page_not_found_message'] ?>
         </p>
         
         <div class="btn-container">
             <a href="login.php" class="btn-login">
-                <i class="fas fa-sign-in-alt"></i> Go to Login Page
+                <i class="fas fa-sign-in-alt"></i> <?= $lang['go_to_login'] ?>
             </a>
         </div>
-        
-        
     </div>
     
     <div class="footer">
-        &copy; 2025 GPLMS. All rights reserved.
+        &copy; <?= date('Y') ?> GPLMS. <?= $lang['all_rights_reserved'] ?>
     </div>
 </body>
 </html>

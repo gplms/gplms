@@ -5,9 +5,9 @@
                 <form method="POST">
                     <div class="modal-header">
                         <h5 class="modal-title" id="publisherModalLabel">
-                            <?= $edit_publisher ? 'Edit Publisher' : 'Add New Publisher' ?>
+                            <?= $edit_publisher ? $lang['edit_publisher'] : $lang['add_new_publisher'] ?>
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="<?= $lang['close'] ?>"></button>
                     </div>
                     <div class="modal-body">
                         <?php if ($edit_publisher): ?>
@@ -18,26 +18,26 @@
                         <?php endif; ?>
                         
                         <div class="mb-3">
-                            <label class="form-label">Publisher Name</label>
+                            <label class="form-label"><?= $lang['publisher_name'] ?></label>
                             <input type="text" name="name" class="form-control" required 
                                    value="<?= $edit_publisher['name'] ?? '' ?>">
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Contact Information</label>
+                            <label class="form-label"><?= $lang['contact_information'] ?></label>
                             <textarea name="contact_info" class="form-control" rows="3"><?= $edit_publisher['contact_info'] ?? '' ?></textarea>
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Website URL</label>
+                            <label class="form-label"><?= $lang['website_url'] ?></label>
                             <input type="url" name="website" class="form-control" 
                                    placeholder="https://example.com"
                                    value="<?= $edit_publisher['website'] ?? '' ?>">
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Publisher</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['cancel'] ?></button>
+                        <button type="submit" class="btn btn-primary"><?= $lang['save_publisher'] ?></button>
                     </div>
                 </form>
             </div>

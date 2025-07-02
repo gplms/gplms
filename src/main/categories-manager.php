@@ -12,6 +12,8 @@ if (!isset($_SESSION['role'])) {
 
 // Load configuration file containing constants and environment settings
 require_once '../conf/config.php';
+require_once '../functions/fetch-lib-name.php';
+require_once '../conf/translation.php';
 
 // Add missing columns to categories table if needed
 try {
@@ -52,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_POST['description'] ?? '',
                         $_POST['status'] ?? 'active'
                     ]);
-                    $success_msg = "Category added successfully!";
-                    logActivity($pdo, $_SESSION['user_id'], 'INSERT', 'categories', 'Added category: '.$_POST['name']);
+                    $success_msg = $lang['category_added_successfully'];
+                    logActivity($pdo, $_SESSION['user_id'], 'INSERT', 'categories', sprintf($lang['log_added_category'], $_POST['name']));
                     break;
                     
                 case 'update_category':
@@ -65,15 +67,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_POST['status'] ?? 'active',
                         $_POST['category_id']
                     ]);
-                    $success_msg = "Category updated successfully!";
-                    logActivity($pdo, $_SESSION['user_id'], 'UPDATE', 'categories', 'Updated category: '.$_POST['name']);
+                    $success_msg = $lang['category_updated_successfully'];
+                    logActivity($pdo, $_SESSION['user_id'], 'UPDATE', 'categories', sprintf($lang['log_updated_category'], $_POST['name']));
                     break;
             }
             
             $pdo->commit();
         } catch (Exception $e) {
             $pdo->rollBack();
-            $error_msg = "Error: " . $e->getMessage();
+            $error_msg = $lang['error'] . $e->getMessage();
         }
     }
 }
@@ -91,15 +93,15 @@ if (isset($_GET['delete'])) {
             $item_count = $stmt->fetchColumn();
             
             if ($item_count > 0) {
-                $error_msg = "Cannot delete category because it is used in $item_count items!";
+                $error_msg = sprintf($lang['cannot_delete_category'], $item_count);
             } else {
                 $stmt = $pdo->prepare("DELETE FROM categories WHERE category_id = ?");
                 $stmt->execute([$id]);
-                $success_msg = "Category deleted successfully!";
-                logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'categories', 'Deleted category ID: '.$id);
+                $success_msg = $lang['category_deleted_successfully'];
+                logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'categories', sprintf($lang['log_deleted_category'], $id));
             }
         } catch (Exception $e) {
-            $error_msg = "Error deleting category: " . $e->getMessage();
+            $error_msg = $lang['error_deleting_category'] . $e->getMessage();
         }
     }
 }
@@ -160,20 +162,21 @@ $recently_updated = $pdo->query("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Categories Manager - Library System</title>
+    <title><?= $lang['page_title_categories_manager'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="../styles/categories-manager.css">
     <link rel="stylesheet" href="../styles/general/general-main-styles.css">
     <link rel="stylesheet" href="../styles/components/topbar.css">
-    <link rel="stylesheet" href="../styles/components/sidebar.css">
+    <link rel="stylesheet" href="../styles/components/sidebar1.css">
     <link rel="stylesheet" href="../styles/responsive/responsive.css">
+    <link rel="icon" type="image/png" href="../../assets/logo-l.png">
 </head>
 <body>
 
     <!-- Sidebar Component -->
-    <?php include '../components/sidebar.php'; ?>
+    <?php include '../components/sidebar1.php'; ?>
 
     <!-- Main Content -->
     <div id="content">
@@ -181,11 +184,11 @@ $recently_updated = $pdo->query("
             <button class="btn btn-primary btn-toggle" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h4>Categories Manager</h4>
+            <h4><?= $lang['categories_manager'] ?></h4>
             <div>
-                <span class="me-3">Welcome, <?= $_SESSION['username'] ?></span>
-                <a href="?logout" class="btn btn-outline-danger btn-sm">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <span class="me-3"><?= $lang['welcome'] ?>, <?= $_SESSION['username'] ?></span>
+                <a href="logout.php" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> <?= $lang['logout'] ?>
                 </a>
             </div>
         </div>
@@ -212,7 +215,7 @@ $recently_updated = $pdo->query("
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['total_categories'] ?></div>
-                    <div class="stat-label">Total Categories</div>
+                    <div class="stat-label"><?= $lang['total_categories'] ?></div>
                 </div>
             </div>
             
@@ -222,7 +225,7 @@ $recently_updated = $pdo->query("
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['active_categories'] ?></div>
-                    <div class="stat-label">Active Categories</div>
+                    <div class="stat-label"><?= $lang['active_categories'] ?></div>
                 </div>
             </div>
             
@@ -232,7 +235,7 @@ $recently_updated = $pdo->query("
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['items_in_categories'] ?></div>
-                    <div class="stat-label">Items in Categories</div>
+                    <div class="stat-label"><?= $lang['items_in_categories'] ?></div>
                 </div>
             </div>
             
@@ -242,7 +245,7 @@ $recently_updated = $pdo->query("
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['recently_updated'] ?></div>
-                    <div class="stat-label">Recently Updated</div>
+                    <div class="stat-label"><?= $lang['recently_updated'] ?></div>
                 </div>
             </div>
         </div>
@@ -251,9 +254,9 @@ $recently_updated = $pdo->query("
             <div class="col-md-7">
                 <div class="admin-card">
                     <div class="card-header">
-                        <span>Manage Categories</span>
+                        <span><?= $lang['manage_categories'] ?></span>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#categoryModal">
-                            <i class="fas fa-plus me-1"></i> Add Category
+                            <i class="fas fa-plus me-1"></i> <?= $lang['add_category'] ?>
                         </button>
                     </div>
                     <div class="card-body">
@@ -261,12 +264,12 @@ $recently_updated = $pdo->query("
                             <table class="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Category Name</th>
-                                        <th>Description</th>
-                                        <th>Items</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
+                                        <th><?= $lang['id'] ?></th>
+                                        <th><?= $lang['category_name'] ?></th>
+                                        <th><?= $lang['description'] ?></th>
+                                        <th><?= $lang['items'] ?></th>
+                                        <th><?= $lang['status'] ?></th>
+                                        <th><?= $lang['actions'] ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -274,7 +277,7 @@ $recently_updated = $pdo->query("
                                         <tr>
                                             <td><?= $category['category_id'] ?></td>
                                             <td><?= $category['name'] ?></td>
-                                            <td><?= $category['description'] ? substr($category['description'], 0, 30) . '...' : 'N/A' ?></td>
+                                            <td><?= $category['description'] ? substr($category['description'], 0, 30) . '...' : $lang['na'] ?></td>
                                             <td><?= $category['item_count'] ?></td>
                                             <td>
                                                 <span class="status-badge <?= $category['status'] === 'active' ? 'status-active' : 'status-inactive' ?>">
@@ -283,10 +286,10 @@ $recently_updated = $pdo->query("
                                             </td>
                                             <td>
                                                 <div class="action-btns">
-                                                    <a href="?edit_category=<?= $category['category_id'] ?>" class="action-btn btn-edit" title="Edit">
+                                                    <a href="?edit_category=<?= $category['category_id'] ?>" class="action-btn btn-edit" title="<?= $lang['edit'] ?>">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="?delete=category&id=<?= $category['category_id'] ?>" class="action-btn btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this category?')">
+                                                    <a href="?delete=category&id=<?= $category['category_id'] ?>" class="action-btn btn-delete" title="<?= $lang['delete'] ?>" onclick="return confirm('<?= $lang['confirm_delete_category'] ?>')">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
                                                 </div>
@@ -303,7 +306,7 @@ $recently_updated = $pdo->query("
             <div class="col-md-5">
                 <div class="admin-card">
                     <div class="card-header">
-                        <span>Category Distribution</span>
+                        <span><?= $lang['category_distribution'] ?></span>
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
@@ -314,7 +317,7 @@ $recently_updated = $pdo->query("
                 
                 <div class="admin-card mt-4">
                     <div class="card-header">
-                        <span>Recently Updated Categories</span>
+                        <span><?= $lang['recently_updated_categories'] ?></span>
                     </div>
                     <div class="card-body">
                         <div class="activity-list">
@@ -327,11 +330,11 @@ $recently_updated = $pdo->query("
                                         <div>
                                             <div class="fw-bold"><?= $category['name'] ?></div>
                                             <div class="text-muted small">
-                                                Updated: <?= date('M d, Y H:i', strtotime($category['last_modified'])) ?>
+                                                <?= $lang['updated'] ?>: <?= date('M d, Y H:i', strtotime($category['last_modified'])) ?>
                                             </div>
                                             <div class="mt-1">
                                                 <span class="badge bg-light text-dark">
-                                                    <i class="fas fa-book me-1"></i> <?= $category['item_count'] ?> items
+                                                    <i class="fas fa-book me-1"></i> <?= $category['item_count'] ?> <?= $lang['items_plural'] ?>
                                                 </span>
                                                 <span class="badge <?= $category['status'] === 'active' ? 'bg-success' : 'bg-danger' ?> ms-1">
                                                     <?= ucfirst($category['status']) ?>
@@ -343,7 +346,7 @@ $recently_updated = $pdo->query("
                             <?php else: ?>
                                 <div class="text-center py-4">
                                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted">No categories updated in the last 7 days</p>
+                                    <p class="text-muted"><?= $lang['no_recent_categories'] ?></p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -359,8 +362,8 @@ $recently_updated = $pdo->query("
             <div class="modal-content">
                 <form method="post" action="">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="categoryModalLabel"><?= isset($edit_category) ? 'Edit Category' : 'Add New Category' ?></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title" id="categoryModalLabel"><?= isset($edit_category) ? $lang['edit_category'] : $lang['add_new_category'] ?></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $lang['close'] ?>"></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="action_type" value="<?= isset($edit_category) ? 'update_category' : 'add_category' ?>">
@@ -369,28 +372,28 @@ $recently_updated = $pdo->query("
                         <?php endif; ?>
                         
                         <div class="mb-3">
-                            <label for="name" class="form-label">Category Name *</label>
+                            <label for="name" class="form-label"><?= $lang['category_name'] ?> *</label>
                             <input type="text" class="form-control" id="name" name="name" 
                                    value="<?= $edit_category['name'] ?? '' ?>" required>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
+                            <label for="description" class="form-label"><?= $lang['description'] ?></label>
                             <textarea class="form-control" id="description" name="description" 
                                       rows="3"><?= $edit_category['description'] ?? '' ?></textarea>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="status" class="form-label">Status</label>
+                            <label for="status" class="form-label"><?= $lang['status'] ?></label>
                             <select class="form-select" id="status" name="status">
-                                <option value="active" <?= (isset($edit_category) && $edit_category['status'] === 'active') ? 'selected' : '' ?>>Active</option>
-                                <option value="inactive" <?= (isset($edit_category) && $edit_category['status'] === 'inactive') ? 'selected' : '' ?>>Inactive</option>
+                                <option value="active" <?= (isset($edit_category) && $edit_category['status'] === 'active') ? 'selected' : '' ?>><?= $lang['active'] ?></option>
+                                <option value="inactive" <?= (isset($edit_category) && $edit_category['status'] === 'inactive') ? 'selected' : '' ?>><?= $lang['inactive'] ?></option>
                             </select>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary"><?= isset($edit_category) ? 'Update Category' : 'Add Category' ?></button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['close'] ?></button>
+                        <button type="submit" class="btn btn-primary"><?= isset($edit_category) ? $lang['update_category'] : $lang['add_category'] ?></button>
                     </div>
                 </form>
             </div>
@@ -421,7 +424,7 @@ $recently_updated = $pdo->query("
             data: {
                 labels: <?= json_encode(array_keys($category_distribution)) ?>,
                 datasets: [{
-                    label: 'Number of Items',
+                    label: '<?= $lang['number_of_items'] ?>',
                     data: <?= json_encode(array_values($category_distribution)) ?>,
                     backgroundColor: 'rgba(54, 162, 235, 0.5)',
                     borderColor: 'rgba(54, 162, 235, 1)',

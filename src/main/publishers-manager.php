@@ -1,6 +1,14 @@
 <?php
 session_start();
 
+require_once '../conf/config.php';
+
+require_once '../conf/translation.php';
+
+require_once '../conf/check-session.php';
+
+require_once '../functions/fetch-lib-name.php';
+
 // Check if user is admin
 if (!isset($_SESSION['role'])) {
     header("Location: login.php");
@@ -184,7 +192,7 @@ $recently_updated = $pdo->query("
    <link rel="stylesheet" href="../styles/publishers.css">
 
    <link rel="icon" type="image/png" href="../../assets/logo-l.png">
-
+<link href="../styles/components/sidebar1.css" rel="stylesheet">
    
 </head>
 <body>
@@ -193,7 +201,7 @@ $recently_updated = $pdo->query("
          - Persistent navigation panel
          - Loaded from shared component file
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-    <?php include '../components/sidebar.php'; ?>
+    <?php include '../components/sidebar1.php'; ?>
     <?php include '../components/publisher-main-content.php'; ?>
 
     

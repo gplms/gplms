@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../conf/config.php';
+require_once '../conf/translation.php'; // Include translation file
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -15,9 +16,9 @@ if (!$item_id) {
     exit;
 }
 
-// Get item details
+// Get item details including creator ID
 $stmt = $pdo->prepare("
-    SELECT li.*, u.username AS added_by_username
+    SELECT li.*, u.username AS added_by_username, u.user_id AS creator_id
     FROM library_items li
     LEFT JOIN users u ON li.added_by = u.user_id
     WHERE li.item_id = ?
@@ -32,14 +33,16 @@ if (!$item) {
 
 // Check permissions
 $can_edit = false;
-if ($_SESSION['role'] === 'Administrator') {
-    $can_edit = true;
-} elseif ($_SESSION['role'] === 'Librarian' && $item['added_by'] == $_SESSION['user_id']) {
+$is_admin = ($_SESSION['role'] === 'Administrator');
+$is_creator = ($item['creator_id'] == $_SESSION['user_id']);
+
+if ($is_admin || ($_SESSION['role'] === 'Librarian' && $is_creator)) {
     $can_edit = true;
 }
 
+// Redirect to request page if no permission
 if (!$can_edit) {
-    header("Location: search.php");
+    header("Location: request_action.php?action=edit&id=$item_id");
     exit;
 }
 
@@ -120,15 +123,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         $pdo->commit();
-        $success_message = "Material updated successfully!";
+        $success_message = $lang['material_updated_successfully'];
         
-        // Refresh item data
-        $stmt = $pdo->prepare("SELECT * FROM library_items WHERE item_id = ?");
+        // Refresh item data - use the same query as initial fetch
+        $stmt = $pdo->prepare("
+            SELECT li.*, u.username AS added_by_username
+            FROM library_items li
+            LEFT JOIN users u ON li.added_by = u.user_id
+            WHERE li.item_id = ?
+        ");
         $stmt->execute([$item_id]);
         $item = $stmt->fetch();
     } catch (Exception $e) {
         $pdo->rollBack();
-        $error_message = "Error updating material: " . $e->getMessage();
+        $error_message = $lang['error'] . $e->getMessage();
     }
 }
 ?>
@@ -137,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Edit Material</title>
+    <title>GPLMS - <?= $lang['edit_material'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -149,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container py-4">
-        <h1 class="text-center mb-4"><i class="fas fa-edit me-2"></i>Edit Material</h1>
+        <h1 class="text-center mb-4"><i class="fas fa-edit me-2"></i><?= $lang['edit_author'] ?></h1>
         
         <?php if ($success_message): ?>
             <div class="alert alert-success">
@@ -165,24 +173,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div class="alert alert-info">
             <i class="fas fa-info-circle me-2"></i> 
-            You are editing material added by: <strong><?= $item['added_by_username'] ?></strong>
+            <?= $lang['editing_material_added_by'] ?> <strong><?= $item['added_by_username'] ?></strong>
         </div>
         
         <form method="POST">
             <div class="form-card">
-                <h3 class="section-title">Material Information</h3>
+                <h3 class="section-title"><?= $lang['material_information'] ?></h3>
                 
                 <div class="mb-3">
-                    <label class="form-label">Title <span class="text-danger">*</span></label>
+                    <label class="form-label"><?= $lang['title'] ?> <span class="text-danger">*</span></label>
                     <input type="text" name="title" class="form-control" required
                            value="<?= htmlspecialchars($item['title']) ?>">
                 </div>
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">Material Type <span class="text-danger">*</span></label>
+                        <label class="form-label"><?= $lang['material_type'] ?> <span class="text-danger">*</span></label>
                         <select name="type_id" class="form-select" required>
-                            <option value="">Select Type</option>
+                            <option value=""><?= $lang['select_type'] ?></option>
                             <?php foreach ($types as $type): ?>
                                 <option value="<?= $type['type_id'] ?>" 
                                     <?= $item['type_id'] == $type['type_id'] ? 'selected' : '' ?>>
@@ -193,9 +201,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     
                     <div class="col-md-6">
-                        <label class="form-label">Category</label>
+                        <label class="form-label"><?= $lang['category'] ?></label>
                         <select name="category_id" class="form-select">
-                            <option value="">Select Category</option>
+                            <option value=""><?= $lang['select_category'] ?></option>
                             <?php foreach ($categories as $category): ?>
                                 <option value="<?= $category['category_id'] ?>" 
                                     <?= $item['category_id'] == $category['category_id'] ? 'selected' : '' ?>>
@@ -208,30 +216,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <label class="form-label">Language <span class="text-danger">*</span></label>
+                        <label class="form-label"><?= $lang['language'] ?> <span class="text-danger">*</span></label>
                         <select name="language" class="form-select" required>
-                            <option value="EN" <?= $item['language'] === 'EN' ? 'selected' : '' ?>>English</option>
-                            <option value="GR" <?= $item['language'] === 'GR' ? 'selected' : '' ?>>Greek</option>
-                            <option value="Other" <?= $item['language'] === 'Other' ? 'selected' : '' ?>>Other</option>
+                            <option value="EN" <?= $item['language'] === 'EN' ? 'selected' : '' ?>><?= $lang['EN'] ?></option>
+                            <option value="GR" <?= $item['language'] === 'GR' ? 'selected' : '' ?>><?= $lang['GR'] ?></option>
+                            <option value="Other" <?= $item['language'] === 'Other' ? 'selected' : '' ?>><?= $lang['Other'] ?></option>
                         </select>
                     </div>
                     
                     <div class="col-md-4">
-                        <label class="form-label">Publication Year</label>
+                        <label class="form-label"><?= $lang['publication_year'] ?></label>
                         <input type="number" name="publication_year" class="form-control" 
                                min="1000" max="<?= date('Y') ?>"
                                value="<?= $item['publication_year'] ?>">
                     </div>
                     
                     <div class="col-md-4">
-                        <label class="form-label">Edition</label>
+                        <label class="form-label"><?= $lang['edition'] ?></label>
                         <input type="number" name="edition" class="form-control" min="1"
                                value="<?= $item['edition'] ?>">
                     </div>
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label">Description</label>
+                    <label class="form-label"><?= $lang['description'] ?></label>
                     <textarea name="description" class="form-control" rows="3"><?= 
                         htmlspecialchars($item['description']) 
                     ?></textarea>
@@ -239,17 +247,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="form-card">
-                <h3 class="section-title">Identifiers</h3>
+                <h3 class="section-title"><?= $lang['identifiers'] ?></h3>
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">ISBN</label>
+                        <label class="form-label"><?= $lang['isbn'] ?></label>
                         <input type="text" name="isbn" class="form-control"
                                value="<?= $item['isbn'] ?>">
                     </div>
                     
                     <div class="col-md-6">
-                        <label class="form-label">ISSN</label>
+                        <label class="form-label"><?= $lang['issn'] ?></label>
                         <input type="text" name="issn" class="form-control"
                                value="<?= $item['issn'] ?>">
                     </div>
@@ -257,12 +265,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="form-card">
-                <h3 class="section-title">Publisher</h3>
+                <h3 class="section-title"><?= $lang['publisher'] ?></h3>
                 
                 <div class="mb-3">
-                    <label class="form-label">Select Publisher</label>
+                    <label class="form-label"><?= $lang['select_publisher'] ?></label>
                     <select name="publisher_id" class="form-select">
-                        <option value="">Select Publisher</option>
+                        <option value=""><?= $lang['select_publisher'] ?></option>
                         <?php foreach ($publishers as $publisher): ?>
                             <option value="<?= $publisher['publisher_id'] ?>" 
                                 <?= $item['publisher_id'] == $publisher['publisher_id'] ? 'selected' : '' ?>>
@@ -274,10 +282,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="form-card">
-                <h3 class="section-title">Authors</h3>
+                <h3 class="section-title"><?= $lang['authors'] ?></h3>
                 
                 <div class="mb-3">
-                    <label class="form-label">Select Authors</label>
+                    <label class="form-label"><?= $lang['select_authors'] ?></label>
                     <select name="author_ids[]" class="form-select" multiple size="8">
                         <?php foreach ($all_authors as $author): ?>
                             <option value="<?= $author['author_id'] ?>" 
@@ -286,16 +294,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <small class="text-muted">Hold Ctrl/Cmd to select multiple authors</small>
+                    <small class="text-muted"><?= $lang['select_multiple_authors_hint'] ?></small>
                 </div>
             </div>
             
             <div class="text-center mt-4">
                 <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-save me-2"></i>Update Material
+                    <i class="fas fa-save me-2"></i><?= $lang['update_material'] ?>
                 </button>
                 <a href="materials-manager.php" class="btn btn-outline-secondary btn-lg ms-2">
-                    <i class="fas fa-times me-2"></i>Cancel
+                    <i class="fas fa-times me-2"></i><?= $lang['cancel'] ?>
                 </a>
             </div>
         </form>

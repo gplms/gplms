@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../conf/config.php';
+require_once '../conf/translation.php';
 
 // Check if user is admin
 if (!isset($_SESSION['role'])) {
@@ -23,18 +24,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($_POST['action_type'] === 'add_type') {
                 $stmt = $pdo->prepare("INSERT INTO material_types (type_name) VALUES (?)");
                 $stmt->execute([$_POST['type_name']]);
-                $success_msg = "Material type added successfully!";
+                $success_msg = $lang['material_type_added'];
             }
             elseif ($_POST['action_type'] === 'update_type') {
                 $stmt = $pdo->prepare("UPDATE material_types SET type_name = ? WHERE type_id = ?");
                 $stmt->execute([$_POST['type_name'], $_POST['type_id']]);
-                $success_msg = "Material type updated successfully!";
+                $success_msg = $lang['material_type_updated'];
             }
             
             $pdo->commit();
         } catch (Exception $e) {
             $pdo->rollBack();
-            $error_msg = "Error: " . $e->getMessage();
+            $error_msg = sprintf($lang['error_processing_request'], $e->getMessage());
         }
     }
 }
@@ -51,14 +52,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete_type') {
             $materialCount = $checkStmt->fetchColumn();
             
             if ($materialCount > 0) {
-                $error_msg = "Cannot delete type: $materialCount material(s) are using this type.";
+                $error_msg = sprintf($lang['cannot_delete_type'], $materialCount);
             } else {
                 $stmt = $pdo->prepare("DELETE FROM material_types WHERE type_id = ?");
                 $stmt->execute([$id]);
-                $success_msg = "Material type deleted successfully!";
+                $success_msg = $lang['material_type_deleted'];
             }
         } catch (Exception $e) {
-            $error_msg = "Error processing request: " . $e->getMessage();
+            $error_msg = sprintf($lang['error_processing_request'], $e->getMessage());
         }
     }
 }
@@ -69,7 +70,7 @@ $types = $pdo->query("SELECT mt.*,
     FROM material_types mt
     ORDER BY type_name")->fetchAll();
 
-// Get type for editing
+// Get type for editing (if using traditional method)
 $edit_type = null;
 if (isset($_GET['edit_type'])) {
     $stmt = $pdo->prepare("SELECT * FROM material_types WHERE type_id = ?");
@@ -78,11 +79,11 @@ if (isset($_GET['edit_type'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $default_language ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Manage Material Types</title>
+    <title>GPLMS - <?= $lang['manage_material_types'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -91,12 +92,15 @@ if (isset($_GET['edit_type'])) {
         .admin-table th, .admin-table td { padding: 12px 15px; border-bottom: 1px solid #eee; }
         .admin-table th { background: #f8f9fa; }
         .action-btns { display: flex; gap: 10px; }
+        .modal-content { border-radius: 10px; }
+        .modal-header { background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; }
+        .modal-title { font-weight: 600; }
     </style>
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
 </head>
 <body>
     <div class="container py-4">
-        <h1 class="text-center mb-4"><i class="fas fa-tags me-2"></i>Manage Material Types</h1>
+        <h1 class="text-center mb-4"><i class="fas fa-tags me-2"></i><?= $lang['manage_material_types'] ?></h1>
         
         <?php if ($success_msg): ?>
             <div class="alert alert-success">
@@ -112,28 +116,21 @@ if (isset($_GET['edit_type'])) {
         
         <div class="card mb-4">
             <div class="card-header">
-                <h3 class="mb-0"><?= isset($edit_type) ? 'Edit Material Type' : 'Add New Material Type' ?></h3>
+                <h3 class="mb-0"><?= $lang['add_new_material_type'] ?></h3>
             </div>
             <div class="card-body">
                 <form method="POST">
-                    <input type="hidden" name="action_type" value="<?= isset($edit_type) ? 'update_type' : 'add_type' ?>">
-                    <?php if (isset($edit_type)): ?>
-                        <input type="hidden" name="type_id" value="<?= $edit_type['type_id'] ?>">
-                    <?php endif; ?>
+                    <input type="hidden" name="action_type" value="add_type">
                     
                     <div class="mb-3">
-                        <label class="form-label">Type Name <span class="text-danger">*</span></label>
-                        <input type="text" name="type_name" class="form-control" required
-                               value="<?= $edit_type['type_name'] ?? '' ?>">
+                        <label class="form-label"><?= $lang['type_name'] ?> <span class="text-danger">*</span></label>
+                        <input type="text" name="type_name" class="form-control" required>
                     </div>
                     
                     <div class="text-end">
                         <button type="submit" class="btn btn-primary">
-                            <?= isset($edit_type) ? 'Update Type' : 'Add Type' ?>
+                            <i class="fas fa-plus me-1"></i> <?= $lang['add_type'] ?>
                         </button>
-                        <?php if (isset($edit_type)): ?>
-                            <a href="manage-types.php" class="btn btn-outline-secondary">Cancel</a>
-                        <?php endif; ?>
                     </div>
                 </form>
             </div>
@@ -141,17 +138,17 @@ if (isset($_GET['edit_type'])) {
         
         <div class="card">
             <div class="card-header">
-                <h3 class="mb-0">Existing Material Types</h3>
+                <h3 class="mb-0"><?= $lang['existing_material_types'] ?></h3>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Type Name</th>
-                                <th>Materials Count</th>
-                                <th>Actions</th>
+                                <th><?= $lang['id'] ?></th>
+                                <th><?= $lang['type_name'] ?></th>
+                                <th><?= $lang['materials_count'] ?></th>
+                                <th><?= $lang['actions'] ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -162,13 +159,15 @@ if (isset($_GET['edit_type'])) {
                                     <td><?= $type['material_count'] ?></td>
                                     <td>
                                         <div class="action-btns">
-                                            <a href="manage-types.php?edit_type=<?= $type['type_id'] ?>" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
+                                            <button type="button" class="btn btn-sm btn-primary edit-btn"
+                                                    data-id="<?= $type['type_id'] ?>"
+                                                    data-name="<?= htmlspecialchars($type['type_name']) ?>">
+                                                <i class="fas fa-edit"></i> <?= $lang['edit'] ?>
+                                            </button>
                                             <a href="manage-types.php?action=delete_type&id=<?= $type['type_id'] ?>" 
                                                class="btn btn-sm btn-danger"
-                                               onclick="return confirm('Are you sure you want to delete this type?');">
-                                                <i class="fas fa-trash"></i> Delete
+                                               onclick="return confirm('<?= $lang['confirm_delete_type'] ?>');">
+                                                <i class="fas fa-trash"></i> <?= $lang['delete'] ?>
                                             </a>
                                         </div>
                                     </td>
@@ -182,20 +181,66 @@ if (isset($_GET['edit_type'])) {
         
         <div class="mt-4">
             <a href="materials-manager.php" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Back to Materials Manager
+                <i class="fas fa-arrow-left me-2"></i> <?= $lang['back_to_materials_manager'] ?>
             </a>
         </div>
     </div>
 
+    <!-- Edit Material Type Modal -->
+    <div class="modal fade" id="editTypeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i><?= $lang['edit_material_type'] ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $lang['close'] ?>"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="action_type" value="update_type">
+                        <input type="hidden" name="type_id" id="editTypeId">
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><?= $lang['type_name'] ?> <span class="text-danger">*</span></label>
+                            <input type="text" name="type_name" id="editTypeName" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <?= $lang['cancel'] ?>
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> <?= $lang['update_type'] ?>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <?php if (isset($edit_type)): ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Scroll to the form when editing a type
-            document.querySelector('.card').scrollIntoView();
+            // Edit button functionality
+            const editButtons = document.querySelectorAll('.edit-btn');
+            const editModal = new bootstrap.Modal(document.getElementById('editTypeModal'));
+            
+            editButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const typeId = this.getAttribute('data-id');
+                    const typeName = this.getAttribute('data-name');
+                    
+                    document.getElementById('editTypeId').value = typeId;
+                    document.getElementById('editTypeName').value = typeName;
+                    
+                    editModal.show();
+                });
+            });
+            
+            // Auto-focus on input when modal opens
+            editModal._element.addEventListener('shown.bs.modal', function() {
+                document.getElementById('editTypeName').focus();
+            });
         });
     </script>
-    <?php endif; ?>
 </body>
 </html>

@@ -1,11 +1,29 @@
 <?php
 // Load configuration file
 require_once '../conf/config.php';
+require_once '../conf/translation.php'; // Include translation file
 
-// MailerSend API configuration
-define('MAILERSEND_API_KEY', 'YOUR MAILERSEND API KEY');
-define('EMAIL_FROM', 'YOUR FROM EMAIL');
-define('EMAIL_FROM_NAME', 'Library System');
+// Get MailerSend settings from database
+$mailersend_api_key = '';
+$mailersend_sender_email = '';
+$mailersend_sender_name = '';
+$password_reset_expiry_hours = 24; // Default value
+
+try {
+    $stmt = $pdo->prepare("SELECT setting_key, setting_value FROM system_settings 
+                          WHERE setting_key IN ('mailersend_api_key', 'mailersend_sender_email', 'mailersend_sender_name', 'password_reset_expiry_hours')");
+    $stmt->execute();
+    $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    
+    $mailersend_api_key = $settings['mailersend_api_key'] ?? '';
+    $mailersend_sender_email = $settings['mailersend_sender_email'] ?? '';
+    $mailersend_sender_name = $settings['mailersend_sender_name'] ?? '';
+    $password_reset_expiry_hours = isset($settings['password_reset_expiry_hours']) ? 
+        (int)$settings['password_reset_expiry_hours'] : 24;
+} catch (PDOException $e) {
+    // Log error but don't break the page
+    error_log("Database error fetching settings: " . $e->getMessage());
+}
 
 // Handle form submission
 $message = '';
@@ -15,10 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
 
     if (empty($email)) {
-        $message = "Please enter your email address";
+        $message = $lang['please_enter_email'];
         $message_type = "error";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "Invalid email format";
+        $message = $lang['invalid_email_format'];
         $message_type = "error";
     } else {
         try {
@@ -29,7 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user) {
                 // Generate secure token
                 $token = bin2hex(random_bytes(32));
-                $expires = date("Y-m-d H:i:s", time() + 3600); // 1 hour expiration
+                // Calculate expiration based on database setting
+                $expires = date("Y-m-d H:i:s", time() + ($password_reset_expiry_hours * 3600));
 
                 // Clear previous tokens
                 $pdo->prepare("DELETE FROM password_resets WHERE user_id = ?")->execute([$user['user_id']]);
@@ -38,67 +57,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)");
                 $stmt->execute([$user['user_id'], $token, $expires]);
 
-               $reset_link = "https://" . $_SERVER['HTTP_HOST'] . "/GENERAL-LMS-PROJECT/src/main/reset_password.php?token=" . urlencode($token);
+                $reset_link = "https://" . $_SERVER['HTTP_HOST'] . "/GENERAL-LMS-PROJECT/src/main/reset_password.php?token=" . urlencode($token);
+                
                 // Email content
-                $subject = "Password Reset Request";
-                $message_body = "Hello " . htmlspecialchars($user['full_name']) . ",\n\n";
-                $message_body .= "You requested a password reset for your account.\n\n";
-                $message_body .= "Please click the following link to reset your password:\n";
+                $subject = $lang['password_reset_request'];
+                $message_body = $lang['hello'] . " " . htmlspecialchars($user['full_name']) . ",\n\n";
+                $message_body .= $lang['password_reset_request_message'] . "\n\n";
+                $message_body .= $lang['reset_link_message'] . "\n";
                 $message_body .= $reset_link . "\n\n";
-                $message_body .= "This link will expire in 1 hour.\n\n";
-                $message_body .= "If you didn't request this, please ignore this email.\n\n";
-                $message_body .= "Regards,\nLibrary System";
+                $message_body .= str_replace('{hours}', $password_reset_expiry_hours, $lang['link_expiry_message']) . "\n\n";
+                $message_body .= $lang['ignore_email_message'] . "\n\n";
+                $message_body .= $lang['regards'] . ",\n" . htmlspecialchars($mailersend_sender_name);
 
                 // Send email
-                $email_result = send_email($email, $user['full_name'], $subject, $message_body);
+                $email_result = send_email(
+                    $email, 
+                    $user['full_name'], 
+                    $subject, 
+                    $message_body,
+                    $mailersend_api_key,
+                    $mailersend_sender_email,
+                    $mailersend_sender_name
+                );
                 
                 if ($email_result === true) {
-                    $message = "Password reset instructions have been sent to your email";
+                    $message = $lang['reset_instructions_sent'];
                     $message_type = "success";
                 } else {
-                    $message = "Failed to send email: " . $email_result;
+                    $message = $lang['email_send_error'] . $email_result;
                     $message_type = "error";
                 }
             } else {
                 // Prevent email enumeration
-                $message = "If your email exists in our system, you will receive reset instructions";
+                $message = $lang['reset_instructions_sent_generic'];
                 $message_type = "success";
             }
         } catch (PDOException $e) {
-            $message = "Database error: " . $e->getMessage();
+            $message = $lang['database_error'] . $e->getMessage();
             $message_type = "error";
         } catch (Exception $e) {
-            $message = "Error: " . $e->getMessage();
+            $message = $lang['error'] . $e->getMessage();
             $message_type = "error";
         }
     }
 }
 
-// Enhanced email function with MailerSend validation fixes
-function send_email($to_email, $to_name, $subject, $body) {
+// Enhanced email function with MailerSend// Enhanced email function with MailerSend
+function send_email($to_email, $to_name, $subject, $body, $api_key, $sender_email, $sender_name) {
+    // Make $lang accessible inside this function
+    global $lang;
+    
     // Validate email parameters
     if (!filter_var($to_email, FILTER_VALIDATE_EMAIL)) {
-        return "Invalid recipient email format";
-    }
-    
-    if (!filter_var(EMAIL_FROM, FILTER_VALIDATE_EMAIL)) {
-        return "Invalid sender email format";
+        return $lang['invalid_recipient_email'];
     }
     
     // Ensure names are properly formatted
     $to_name = trim(preg_replace('/[^\p{L}\p{N}\s\-\.]/u', '', $to_name));
-    $from_name = trim(preg_replace('/[^\p{L}\p{N}\s\-\.]/u', '', EMAIL_FROM_NAME));
+    $from_name = trim(preg_replace('/[^\p{L}\p{N}\s\-\.]/u', '', $sender_name));
 
     $url = "https://api.mailersend.com/v1/email";
     $headers = [
-        "Authorization: Bearer " . MAILERSEND_API_KEY,
+        "Authorization: Bearer " . $api_key,
         "Content-Type: application/json",
         "Accept: application/json"
     ];
 
     $postData = [
         "from" => [
-            "email" => EMAIL_FROM,
+            "email" => $sender_email,
             "name" => $from_name
         ],
         "to" => [
@@ -114,7 +141,7 @@ function send_email($to_email, $to_name, $subject, $body) {
     // Validate JSON encoding
     $jsonPayload = json_encode($postData);
     if ($jsonPayload === false) {
-        return "JSON encoding error: " . json_last_error_msg();
+        return $lang['json_encoding_error'] . json_last_error_msg();
     }
 
     $ch = curl_init($url);
@@ -146,26 +173,26 @@ function send_email($to_email, $to_name, $subject, $body) {
         $errorDetails = "HTTP Status: $httpCode\n";
         
         if ($response && $decoded = json_decode($response, true)) {
-            $errorDetails .= "MailerSend Errors:\n";
+            $errorDetails .= $lang['mailersend_errors'] . "\n";
             foreach ($decoded['errors'] as $error) {
                 $errorDetails .= "- " . $error['message'] . "\n";
                 if (isset($error['field'])) {
-                    $errorDetails .= "  Field: " . $error['field'] . "\n";
+                    $errorDetails .= "  " . $lang['field'] . ": " . $error['field'] . "\n";
                 }
             }
         } elseif ($curlError) {
-            $errorDetails .= "cURL Error: $curlError\n";
+            $errorDetails .= $lang['curl_error'] . "$curlError\n";
         } else {
-            $errorDetails .= "Response: " . substr($response, 0, 500) . "\n";
+            $errorDetails .= $lang['response'] . ": " . substr($response, 0, 500) . "\n";
         }
         
-        $errorDetails .= "Recipient: $to_email\n";
-        $errorDetails .= "Subject: $subject\n";
-        $errorDetails .= "Payload: " . print_r($postData, true) . "\n";
+        $errorDetails .= $lang['recipient'] . ": $to_email\n";
+        $errorDetails .= $lang['subject'] . ": $subject\n";
+        $errorDetails .= $lang['payload'] . ": " . print_r($postData, true) . "\n";
         
         file_put_contents($logDir . '/mailersend_errors.log', "[" . date('Y-m-d H:i:s') . "]\n" . $errorDetails . "\n", FILE_APPEND);
         
-        return "Email validation error. Please contact support.";
+        return $lang['email_validation_error'];
     }
 }
 ?>
@@ -175,7 +202,7 @@ function send_email($to_email, $to_name, $subject, $body) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | Forgot Password</title>
+    <title>GPLMS - <?= $lang['forgot_password_title'] ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
 <style>
@@ -381,8 +408,8 @@ function send_email($to_email, $to_name, $subject, $body) {
 <body>
     <div class="password-container">
         <div class="password-header">
-            <h2>Reset Your Password</h2>
-            <p>Enter your email to receive reset instructions</p>
+            <h2><?= $lang['forgot_password_title'] ?></h2>
+            <p><?= $lang['reset_password_instructions'] ?></p>
         </div>
         
         <div class="password-body">
@@ -391,7 +418,7 @@ function send_email($to_email, $to_name, $subject, $body) {
             </div>
             
             <div class="instruction">
-                <p>Enter the email address associated with your account and we'll send you a link to reset your password.</p>
+                <p><?= $lang['enter_email_associated'] ?></p>
             </div>
             
             <?php if ($message): ?>
@@ -403,26 +430,26 @@ function send_email($to_email, $to_name, $subject, $body) {
             
             <form method="POST" id="resetForm">
                 <div class="form-group">
-                    <label for="email">Email Address</label>
+                    <label for="email"><?= $lang['email_address'] ?></label>
                     <div class="input-with-icon">
                         <i class="fas fa-envelope"></i>
                         <input type="email" id="email" name="email" class="form-control" 
-                               placeholder="Enter your email address" required
+                               placeholder="<?= $lang['email_placeholder'] ?>" required
                                value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
                     </div>
                 </div>
                 
                 <div class="form-group">
                     <button type="submit" class="btn-submit">
-                        <i class="fas fa-paper-plane"></i> Send Reset Instructions
+                        <i class="fas fa-paper-plane"></i> <?= $lang['send_reset_instructions'] ?>
                     </button>
                 </div>
             </form>
         </div>
         
         <div class="password-footer">
-            <p>Remember your password? <a href="login.php">Sign In</a></p>
-            <p>© <?= date('Y') ?> GPLMS Open Source Project</p>
+            <p><?= $lang['remember_password'] ?> <a href="login.php"><?= $lang['sign_in'] ?></a></p>
+            <p>© <?= date('Y') ?> GPLMS <?= $lang['open_source_project'] ?></p>
         </div>
     </div>
 
@@ -430,7 +457,7 @@ function send_email($to_email, $to_name, $subject, $body) {
         document.getElementById('resetForm').addEventListener('submit', function() {
             const btn = this.querySelector('button[type="submit"]');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <?= $lang['sending'] ?>...';
         });
     </script>
 </body>

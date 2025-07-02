@@ -5,7 +5,7 @@
                 <div class="logo">
                     <i class="fas fa-book"></i>
                 </div>
-                <span class="logo-text">GPLMS</span>
+                <span class="logo-text"><?= $library_name ?></span>
             </div>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -15,25 +15,33 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="../main/search.php"><i class="fas fa-search me-1"></i> &nbsp;SEARCH ITEMS&nbsp; </a>
+                        <a class="nav-link" href="../main/search.php">
+                            <i class="fas fa-search me-1"></i> &nbsp;<?= $lang['search_items'] ?>&nbsp;
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../main/insert.php"><i class="fa-solid fa-cloud-arrow-up"></i> &nbsp;INSERT ITEMS &nbsp;</a>
+                        <a class="nav-link" href="../main/insert.php">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> &nbsp;<?= $lang['insert_items'] ?>&nbsp;
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../main/contact_devs.php"><i class="fa-solid fa-address-card"></i> &nbsp;CONTACT DEVELOPERS &nbsp;</a>
+                        <a class="nav-link" href="../main/contact_devs.php">
+                            <i class="fa-solid fa-address-card"></i> &nbsp;<?= $lang['contact_developers'] ?>&nbsp;
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="https://www.github.com"><i class="fa-solid fa-code-pull-request"></i>  CONTRIBUTE &nbsp;</a>
+                        <a class="nav-link" href="https://www.github.com/PanagiotisKotsorgios/gplms">
+                            <i class="fa-solid fa-code-pull-request"></i> <?= $lang['contribute'] ?>&nbsp;
+                        </a>
                     </li>
                     <li class="nav-item">
                         <?php if (isset($_SESSION['user_id'])): ?>
                             <a class="nav-link" href="logout.php">
-                                <i class="fas fa-sign-out-alt me-1"></i> Logout (<?= $_SESSION['username'] ?>)
+                                <i class="fas fa-sign-out-alt me-1"></i> <?= $lang['logout'] ?> (<?= $_SESSION['username'] ?>)
                             </a>
                         <?php else: ?>
                             <a class="nav-link" href="login.php">
-                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                                <i class="fas fa-sign-in-alt me-1"></i> <?= $lang['login'] ?>
                             </a>
                         <?php endif; ?>
                     </li>
@@ -41,4 +49,3 @@
             </div>
         </div>
     </nav>
-    

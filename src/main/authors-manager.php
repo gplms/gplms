@@ -13,6 +13,10 @@ if (!isset($_SESSION['role'])) {
 // Load configuration file containing constants and environment settings
 require_once '../conf/config.php';
 
+require_once '../functions/fetch-lib-name.php';
+
+require_once '../conf/translation.php';
+
 // Add last_modified column to authors if needed
 try {
     $pdo->query("SELECT last_modified FROM authors LIMIT 1");
@@ -48,8 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_POST['name'],
                         $_POST['bio'] ?? ''
                     ]);
-                    $success_msg = "Author added successfully!";
-                    logActivity($pdo, $_SESSION['user_id'], 'INSERT', 'authors', 'Added author: '.$_POST['name']);
+                    $success_msg = $lang['author_added_successfully'];
+                    logActivity($pdo, $_SESSION['user_id'], 'INSERT', 'authors', sprintf($lang['log_added_author'], $_POST['name']));
                     break;
                     
                 case 'update_author':
@@ -59,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_POST['bio'] ?? '',
                         $_POST['author_id']
                     ]);
-                    $success_msg = "Author updated successfully!";
-                    logActivity($pdo, $_SESSION['user_id'], 'UPDATE', 'authors', 'Updated author: '.$_POST['name']);
+                    $success_msg = $lang['author_updated_successfully'];
+                    logActivity($pdo, $_SESSION['user_id'], 'UPDATE', 'authors', sprintf($lang['log_updated_author'], $_POST['name']));
                     break;
             }
             
@@ -71,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } catch (Exception $e) {
             $pdo->rollBack();
-            $error_msg = "Error: " . $e->getMessage();
+            $error_msg = $lang['error'] . $e->getMessage();
         }
     }
 }
@@ -89,19 +93,19 @@ if (isset($_GET['delete'])) {
             $item_count = $stmt->fetchColumn();
             
             if ($item_count > 0) {
-                $error_msg = "Cannot delete author because it is used in $item_count items!";
+                $error_msg = sprintf($lang['cannot_delete_author'], $item_count);
             } else {
                 $stmt = $pdo->prepare("DELETE FROM authors WHERE author_id = ?");
                 $stmt->execute([$id]);
-                $success_msg = "Author deleted successfully!";
-                logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'authors', 'Deleted author ID: '.$id);
+                $success_msg = $lang['author_deleted_successfully'];
+                logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'authors', sprintf($lang['log_deleted_author'], $id));
             }
             
             // Redirect after delete
             header("Location: authors-manager.php");
             exit;
         } catch (Exception $e) {
-            $error_msg = "Error deleting author: " . $e->getMessage();
+            $error_msg = $lang['error_deleting_author'] . $e->getMessage();
         }
     }
 }
@@ -190,19 +194,18 @@ $recently_updated = $pdo->query("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | Authors Manager</title>
+    <title><?= $lang['page_title_authors_manager'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="../styles/component/components/sidebar.php">
-            <link rel="icon" type="image/png" href="../../assets/logo-l.png">
-   <link rel="stylesheet" href="../styles/authors.css">
+    <link rel="stylesheet" href="../styles/components/sidebar1.css">
+    <link rel="icon" type="image/png" href="../../assets/logo-l.png">
+    <link rel="stylesheet" href="../styles/authors.css">
     <link rel="stylesheet" href="../styles/components/sidebar.css">
-
 </head>
 <body>
 
-<?php include '../components/sidebar.php';?>
+<?php include '../components/sidebar1.php';?>
 
     <!-- Main Content -->
     <div id="content">
@@ -210,11 +213,11 @@ $recently_updated = $pdo->query("
             <button class="btn btn-primary btn-toggle" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h4>Authors Manager</h4>
+            <h4><?= $lang['authors_manager'] ?></h4>
             <div>
-                <span class="me-3">Welcome, <?= $_SESSION['username'] ?></span>
+                <span class="me-3"><?= $lang['welcome'] ?>, <?= $_SESSION['username'] ?></span>
                 <a href="?logout" class="btn btn-outline-danger btn-sm">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i> <?= $lang['logout'] ?>
                 </a>
             </div>
         </div>
@@ -241,7 +244,7 @@ $recently_updated = $pdo->query("
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['total_authors'] ?></div>
-                    <div class="stat-label">Total Authors</div>
+                    <div class="stat-label"><?= $lang['total_authors'] ?></div>
                 </div>
             </div>
             
@@ -251,7 +254,7 @@ $recently_updated = $pdo->query("
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['authors_with_items'] ?></div>
-                    <div class="stat-label">Authors with Items</div>
+                    <div class="stat-label"><?= $lang['authors_with_items'] ?></div>
                 </div>
             </div>
             
@@ -261,7 +264,7 @@ $recently_updated = $pdo->query("
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['items_by_authors'] ?></div>
-                    <div class="stat-label">Items by Authors</div>
+                    <div class="stat-label"><?= $lang['items_by_authors'] ?></div>
                 </div>
             </div>
             
@@ -271,7 +274,7 @@ $recently_updated = $pdo->query("
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['recently_updated'] ?></div>
-                    <div class="stat-label">Recently Updated</div>
+                    <div class="stat-label"><?= $lang['recently_updated'] ?></div>
                 </div>
             </div>
         </div>
@@ -280,9 +283,9 @@ $recently_updated = $pdo->query("
             <div class="col-md-7">
                 <div class="admin-card">
                     <div class="card-header">
-                        <span>Manage Authors</span>
+                        <span><?= $lang['manage_authors'] ?></span>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#authorModal">
-                            <i class="fas fa-plus me-1"></i> Add Author
+                            <i class="fas fa-plus me-1"></i> <?= $lang['add_author'] ?>
                         </button>
                     </div>
                     <div class="card-body">
@@ -290,11 +293,11 @@ $recently_updated = $pdo->query("
                             <table class="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Author Name</th>
-                                        <th>Bio</th>
-                                        <th>Items</th>
-                                        <th>Actions</th>
+                                        <th><?= $lang['id'] ?></th>
+                                        <th><?= $lang['author_name'] ?></th>
+                                        <th><?= $lang['bio'] ?></th>
+                                        <th><?= $lang['items'] ?></th>
+                                        <th><?= $lang['actions'] ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -308,15 +311,15 @@ $recently_updated = $pdo->query("
                                             <td><?= $author['author_id'] ?></td>
                                             <td><?= $author['name'] ?></td>
                                             <td class="bio-preview" title="<?= htmlspecialchars($author['bio']) ?>">
-                                                <?= $author['bio'] ? substr($author['bio'], 0, 50) . '...' : 'N/A' ?>
+                                                <?= $author['bio'] ? substr($author['bio'], 0, 50) . '...' : $lang['na'] ?>
                                             </td>
                                             <td><?= $author['item_count'] ?></td>
                                             <td>
                                                 <div class="action-btns">
-                                                    <a href="?edit_author=<?= $author['author_id'] ?>&page=<?= $page ?>" class="action-btn btn-edit" title="Edit">
+                                                    <a href="?edit_author=<?= $author['author_id'] ?>&page=<?= $page ?>" class="action-btn btn-edit" title="<?= $lang['edit'] ?>">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="?delete=author&id=<?= $author['author_id'] ?>&page=<?= $page ?>" class="action-btn btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this author?')">
+                                                    <a href="?delete=author&id=<?= $author['author_id'] ?>&page=<?= $page ?>" class="action-btn btn-delete" title="<?= $lang['delete'] ?>" onclick="return confirm('<?= $lang['confirm_delete_author'] ?>')">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
                                                 </div>
@@ -328,7 +331,7 @@ $recently_updated = $pdo->query("
                                         <tr>
                                             <td colspan="5" class="text-center py-4">
                                                 <i class="fas fa-user-slash fa-2x text-muted mb-2"></i>
-                                                <p>No authors found</p>
+                                                <p><?= $lang['no_authors_found'] ?></p>
                                             </td>
                                         </tr>
                                     <?php endif; ?>
@@ -403,7 +406,7 @@ $recently_updated = $pdo->query("
             <div class="col-md-5">
                 <div class="admin-card">
                     <div class="card-header">
-                        <span>Top Authors</span>
+                        <span><?= $lang['top_authors'] ?></span>
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
@@ -414,7 +417,7 @@ $recently_updated = $pdo->query("
                 
                 <div class="admin-card mt-4">
                     <div class="card-header">
-                        <span>Recently Updated Authors</span>
+                        <span><?= $lang['recently_updated_authors'] ?></span>
                     </div>
                     <div class="card-body">
                         <div class="activity-list">
@@ -426,15 +429,15 @@ $recently_updated = $pdo->query("
                                     <div>
                                         <div class="fw-bold"><?= $author['name'] ?></div>
                                         <div class="text-muted small">
-                                            Updated: <?= date('M d, Y', strtotime($author['last_modified'])) ?>
+                                            <?= $lang['updated'] ?>: <?= date('M d, Y', strtotime($author['last_modified'])) ?>
                                         </div>
                                         <div class="mt-1">
                                             <span class="badge bg-light text-dark">
-                                                <i class="fas fa-book me-1"></i> <?= $author['item_count'] ?> items
+                                                <i class="fas fa-book me-1"></i> <?= $author['item_count'] ?> <?= $lang['items_plural'] ?>
                                             </span>
                                         </div>
                                         <div class="mt-1 small text-truncate" title="<?= htmlspecialchars($author['bio']) ?>">
-                                            <?= $author['bio'] ? substr($author['bio'], 0, 80) . '...' : 'No bio available' ?>
+                                            <?= $author['bio'] ? substr($author['bio'], 0, 80) . '...' : $lang['no_bio_available'] ?>
                                         </div>
                                     </div>
                                 </div>
@@ -456,34 +459,33 @@ $recently_updated = $pdo->query("
                 <div class="author-avatar">
                     <i class="fas fa-user"></i>
                 </div>
-                <h2 class="author-name" id="detailAuthorName">Author Name</h2>
-                <div class="author-id" id="detailAuthorId">ID: 123</div>
+                <h2 class="author-name" id="detailAuthorName"><?= $lang['author_name'] ?></h2>
+                <div class="author-id" id="detailAuthorId"><?= $lang['id'] ?>: 123</div>
             </div>
             <div class="author-body">
                 <div class="author-section">
                     <div class="section-title">
-                        <i class="fas fa-info-circle"></i> Biography
+                        <i class="fas fa-info-circle"></i> <?= $lang['biography'] ?>
                     </div>
                     <div class="author-bio" id="detailAuthorBio">
-                        This is where the author's biography will appear. 
-                        If the author has no biography, a placeholder will be shown.
+                        <?= $lang['author_bio_placeholder'] ?>
                     </div>
                 </div>
                 
                 <div class="author-stats">
                     <div class="stat-box">
                         <div class="stat-value" id="detailItemsCount">0</div>
-                        <div class="stat-label">Items</div>
+                        <div class="stat-label"><?= $lang['items'] ?></div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value" id="detailLastModified">Today</div>
-                        <div class="stat-label">Last Updated</div>
+                        <div class="stat-value" id="detailLastModified"><?= $lang['today'] ?></div>
+                        <div class="stat-label"><?= $lang['last_updated'] ?></div>
                     </div>
                 </div>
             </div>
             <div class="author-footer">
                 <button class="btn btn-sm btn-primary" id="editAuthorBtn">
-                    <i class="fas fa-edit me-1"></i> Edit Author
+                    <i class="fas fa-edit me-1"></i> <?= $lang['edit_author'] ?>
                 </button>
             </div>
         </div>
@@ -495,9 +497,9 @@ $recently_updated = $pdo->query("
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="authorModalLabel">
-                        <?= $edit_author ? 'Edit Author' : 'Add New Author' ?>
+                        <?= $edit_author ? $lang['edit_author'] : $lang['add_new_author'] ?>
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= $lang['close'] ?>"></button>
                 </div>
                 <form method="post">
                     <div class="modal-body">
@@ -507,20 +509,20 @@ $recently_updated = $pdo->query("
                         <?php endif; ?>
                         
                         <div class="mb-3">
-                            <label for="authorName" class="form-label">Author Name</label>
+                            <label for="authorName" class="form-label"><?= $lang['author_name'] ?></label>
                             <input type="text" class="form-control" id="authorName" name="name" 
                                    value="<?= $edit_author ? $edit_author['name'] : '' ?>" required>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="authorBio" class="form-label">Biography</label>
+                            <label for="authorBio" class="form-label"><?= $lang['biography'] ?></label>
                             <textarea class="form-control" id="authorBio" name="bio" rows="5"><?= $edit_author ? $edit_author['bio'] : '' ?></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['close'] ?></button>
                         <button type="submit" class="btn btn-primary">
-                            <?= $edit_author ? 'Update Author' : 'Add Author' ?>
+                            <?= $edit_author ? $lang['update_author'] : $lang['add_author'] ?>
                         </button>
                     </div>
                 </form>
@@ -547,7 +549,7 @@ $recently_updated = $pdo->query("
                 data: {
                     labels: authorLabels,
                     datasets: [{
-                        label: 'Items by Author',
+                        label: '<?= $lang['items_by_author'] ?>',
                         data: authorData,
                         backgroundColor: '#4e73df',
                         borderColor: '#4e73df',
@@ -572,7 +574,7 @@ $recently_updated = $pdo->query("
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return `${context.parsed.y} items`;
+                                    return `${context.parsed.y} <?= $lang['items_plural'] ?>`;
                                 }
                             }
                         }
@@ -600,12 +602,12 @@ $recently_updated = $pdo->query("
                 
                 const authorId = this.getAttribute('data-id');
                 const authorName = this.getAttribute('data-name');
-                const authorBio = this.getAttribute('data-bio') || 'No biography available';
+                const authorBio = this.getAttribute('data-bio') || '<?= $lang['no_bio_available'] ?>';
                 const itemsCount = this.getAttribute('data-items');
                 const lastModified = this.getAttribute('data-modified');
                 
                 document.getElementById('detailAuthorName').textContent = authorName;
-                document.getElementById('detailAuthorId').textContent = `ID: ${authorId}`;
+                document.getElementById('detailAuthorId').textContent = `<?= $lang['id'] ?>: ${authorId}`;
                 document.getElementById('detailAuthorBio').textContent = authorBio;
                 document.getElementById('detailItemsCount').textContent = itemsCount;
                 document.getElementById('detailLastModified').textContent = lastModified;
@@ -634,7 +636,7 @@ $recently_updated = $pdo->query("
         // Confirm before deleting
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', function(e) {
-                if (!confirm('Are you sure you want to delete this author?')) {
+                if (!confirm('<?= $lang['confirm_delete_author'] ?>')) {
                     e.preventDefault();
                 }
             });

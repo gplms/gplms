@@ -1,5 +1,6 @@
 <?php
 require_once '../conf/config.php';
+require_once '../conf/translation.php';
 
 $message = '';
 $message_type = '';
@@ -78,25 +79,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $valid_token) {
         }
     }
 }
+
+// Translate messages using the translation system
+$translated_messages = [
+    "This password reset link has expired" => $lang['reset_link_expired'],
+    "Invalid password reset link" => $lang['invalid_reset_link'],
+    "Database error: " => $lang['database_error'],
+    "Please enter a new password" => $lang['enter_new_password'],
+    "Passwords do not match" => $lang['passwords_not_match'],
+    "Password must be at least 8 characters" => $lang['password_min_length'],
+    "Your password has been updated successfully" => $lang['password_updated_success'],
+];
+
+// Replace messages with translations
+if ($message && array_key_exists($message, $translated_messages)) {
+    $message = $translated_messages[$message];
+} elseif (strpos($message, "Database error: ") === 0) {
+    $message = $lang['database_error'] . substr($message, 15);
+}
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $default_language ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | Password Reset</title>
+    <title>GPLMS - <?= $lang['free_open_source_project'] ?> | <?= $lang['password_reset'] ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../styles/reset-password-styles.css">
    <link rel="icon" type="image/png" href="../../assets/logo-l.png">
 </head>
 
-
 <body>
     <div class="password-container">
         <div class="password-header">
-            <h2>Reset Your Password</h2>
-            <p>Create a new secure password</p>
+            <h2><?= $lang['reset_your_password'] ?></h2>
+            <p><?= $lang['create_new_secure_password'] ?></p>
         </div>
         
         <div class="password-body">
@@ -113,16 +131,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $valid_token) {
             
             <?php if ($valid_token): ?>
                 <div class="instruction">
-                    <p>Please enter your new password below. Make sure it's at least 8 characters long.</p>
+                    <p><?= $lang['password_reset_instructions'] ?></p>
                 </div>
                 
                 <form method="POST" id="resetForm">
                     <div class="form-group">
-                        <label for="password">New Password</label>
+                        <label for="password"><?= $lang['new_password'] ?></label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="password" name="password" class="form-control" 
-                                   placeholder="Enter new password" required minlength="8">
+                                   placeholder="<?= $lang['enter_new_password'] ?>" required minlength="8">
                             <span class="password-toggle" id="togglePassword">
                                 <i class="fas fa-eye"></i>
                             </span>
@@ -130,11 +148,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $valid_token) {
                     </div>
                     
                     <div class="form-group">
-                        <label for="confirm_password">Confirm Password</label>
+                        <label for="confirm_password"><?= $lang['confirm_password'] ?></label>
                         <div class="input-with-icon">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="confirm_password" name="confirm_password" class="form-control" 
-                                   placeholder="Confirm new password" required minlength="8">
+                                   placeholder="<?= $lang['confirm_new_password'] ?>" required minlength="8">
                             <span class="password-toggle" id="toggleConfirmPassword">
                                 <i class="fas fa-eye"></i>
                             </span>
@@ -143,20 +161,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $valid_token) {
                     
                     <div class="form-group">
                         <button type="submit" class="btn-submit" id="submitBtn">
-                            <i class="fas fa-key"></i> Reset Password
+                            <i class="fas fa-key"></i> <?= $lang['reset_password_button'] ?>
                         </button>
                     </div>
                 </form>
             <?php elseif (empty($message)): ?>
                 <div class="instruction">
-                    <p>Invalid password reset request. Please make sure you're using the correct link from your email.</p>
+                    <p><?= $lang['invalid_reset_request'] ?></p>
                 </div>
             <?php endif; ?>
         </div>
         
         <div class="password-footer">
-            <p>Remember your password? <a href="login.php">Sign In</a></p>
-            <p>© <?= date('Y') ?> Library Management System</p>
+            <p><?= $lang['remember_password'] ?> <a href="login.php"><?= $lang['sign_in'] ?></a></p>
+            <p>© <?= date('Y') ?> <?= $lang['library_management_system'] ?></p>
         </div>
     </div>
 
@@ -186,15 +204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $valid_token) {
                 form.addEventListener('submit', function() {
                     const btn = this.querySelector('button[type="submit"]');
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-                });
-            }
-            
-            // Password strength indicator (optional enhancement)
-            const passwordInput = document.getElementById('password');
-            if (passwordInput) {
-                passwordInput.addEventListener('input', function() {
-                    // Add password strength meter implementation if desired
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <?= $lang['updating'] ?>...';
                 });
             }
         });

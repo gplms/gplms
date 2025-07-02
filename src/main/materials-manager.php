@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once '../conf/config.php';
-
+require_once '../functions/fetch-lib-name.php';
 // Check if user is admin
 if (!isset($_SESSION['role'])) {
     header("Location: login.php");
@@ -11,9 +11,54 @@ if (!isset($_SESSION['role'])) {
     exit;
 }
 
+
+require_once '../conf/translation.php';
+
+// Get default language setting from database
+$default_language = 'EN'; // Default value
+try {
+    $stmt = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'default_language'");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($result) {
+        $default_language = $result['setting_value'];
+    }
+} catch (PDOException $e) {
+    error_log("Default language setting error: " . $e->getMessage());
+}
+
+// Get items per page setting
+$itemsPerPage = 10;
+try {
+    $stmt = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'items_per_page'");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($result && is_numeric($result['setting_value'])) {
+        $itemsPerPage = (int)$result['setting_value'];
+    }
+} catch (PDOException $e) {
+    error_log("Items per page setting error: " . $e->getMessage());
+}
+
 // Handle status changes and deletions
 $success_msg = '';
 $error_msg = '';
+
+// ========================================================================
+// TRANSLATION SYSTEM
+// ========================================================================
+
+$lang = $translations[$default_language] ?? $translations['EN'];
+
+// Status translations
+$status_translations = [
+    'EN' => [
+        'available' => 'Available',
+        'archived' => 'Archived'
+    ],
+    'GR' => [
+        'available' => 'Διαθέσιμο',
+        'archived' => 'Αρχειοθετημένο'
+    ]
+];
 
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
@@ -26,13 +71,13 @@ if (isset($_GET['action'])) {
                 $new_status = $_GET['status'];
                 $stmt = $pdo->prepare("UPDATE library_items SET status = ? WHERE item_id = ?");
                 $stmt->execute([$new_status, $id]);
-                $success_msg = "Material status updated successfully!";
+                $success_msg = $lang['status_updated'];
             }
             // Material deletion
             elseif ($action === 'delete_material') {
                 $stmt = $pdo->prepare("DELETE FROM library_items WHERE item_id = ?");
                 $stmt->execute([$id]);
-                $success_msg = "Material deleted successfully!";
+                $success_msg = $lang['material_deleted'];
             }
             // Material type deletion
             elseif ($action === 'delete_type') {
@@ -42,21 +87,20 @@ if (isset($_GET['action'])) {
                 $materialCount = $checkStmt->fetchColumn();
                 
                 if ($materialCount > 0) {
-                    $error_msg = "Cannot delete type: $materialCount material(s) are using this type.";
+                    $error_msg = sprintf($lang['type_delete_error'], $materialCount);
                 } else {
                     $stmt = $pdo->prepare("DELETE FROM material_types WHERE type_id = ?");
                     $stmt->execute([$id]);
-                    $success_msg = "Material type deleted successfully!";
+                    $success_msg = $lang['type_deleted'];
                 }
             }
         } catch (Exception $e) {
-            $error_msg = "Error processing request: " . $e->getMessage();
+            $error_msg = $lang['processing_error'] . $e->getMessage();
         }
     }
 }
 
 // Pagination
-$itemsPerPage = 10;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $itemsPerPage;
 
@@ -136,15 +180,13 @@ $material_stats = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Materials Manager</title>
+    <title><?= $lang['page_title'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../styles/components/sidebar1.css">
     <style>
         .main-content { margin-left: 250px; padding: 20px; }
-        .sidebar { width: 250px; height: 100%; position: fixed; top: 0; left: 0; background: #343a40; color: white; padding-top: 20px; }
-        .sidebar a { color: #adb5bd; padding: 10px 15px; text-decoration: none; display: block; }
-        .sidebar a:hover { color: white; background: #495057; }
-        .sidebar .active { color: white; background: #495057; }
+       
         .topbar { background: #fff; padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .admin-card { background: #fff; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .card-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
@@ -182,102 +224,11 @@ $material_stats = [
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
 </head>
 <body>
- <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-book me-2"></i> GPLMS</h3>
-            <hr>
-       
-            <hr>
-        </div>
-        
-        <ul class="sidebar-menu">
-            <li>
-                <a href="../main/control_panel.php" class="">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/users-manager.php">
-                    <i class="fas fa-users"></i>
-                    <span>User Management</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/roles-manager.php">
-                    <i class="fas fa-user-tag"></i>
-                    <span>Roles</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/library-catalog.php">
-                    <i class="fas fa-book"></i>
-                    <span>Library Catalog</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/materials-manager.php">
-                    <i class="fas fa-book-open"></i>
-                    <span>Materials</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/categories-manager.php">
-                    <i class="fas fa-tags"></i>
-                    <span>Categories</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/publishers-manager.php">
-                    <i class="fas fa-building"></i>
-                    <span>Publishers</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/authors-manager.php">
-                    <i class="fas fa-feather"></i>
-                    <span>Authors</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-search"></i>
-                    <span>Search</span>
-                </a>
-            </li>
-            <div class="divider"></div>
-            <li>
-                <a href="../main/settings-manager.php">
-                    <i class="fas fa-cog"></i>
-                    <span>System Settings</span>
-                </a>
-            </li>
-        
-            <li>
-                <a href="../main/activity-log.php">
-                    <i class="fas fa-history"></i>
-                    <span>Activity Log</span>
-                </a>
-            </li>
-    
-            <br>
-            
-            <div class="divider"></div>
-            <li>
-                <a href="../main/search.php">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Back to Library</span>
-                </a>
-            </li>
-            <li>
-                <a href="logout.php">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </div>
+
+
+
+    <!-- Include Sidebar -->
+    <?php include '../components/sidebar1.php'; ?>
     
     <!-- Main Content -->
     <div class="main-content">
@@ -287,7 +238,7 @@ $material_stats = [
                 <button class="sidebar-toggle btn btn-light">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h4 class="d-inline ms-3">Library Materials Management</h4>
+                <h4 class="d-inline ms-3"><?= $lang['library_materials_management'] ?></h4>
             </div>
             <div class="d-flex align-items-center">
                 <div class="me-3">
@@ -305,13 +256,13 @@ $material_stats = [
             <!-- Materials Management Content -->
             <div class="admin-card">
                 <div class="card-header">
-                    <span>Manage Library Materials</span>
+                    <span><?= $lang['manage_library_materials'] ?></span>
                     <div class="material-actions">
                         <a href="insert.php" class="btn btn-primary material-action-btn">
-                            <i class="fas fa-plus"></i> Add Material
+                            <i class="fas fa-plus"></i> <?= $lang['add_material'] ?>
                         </a>
                         <a href="manage-types.php" class="btn btn-secondary material-action-btn">
-                            <i class="fas fa-tag"></i> Manage Material Types
+                            <i class="fas fa-tag"></i> <?= $lang['manage_material_types'] ?>
                         </a>
                     </div>
                 </div>
@@ -338,7 +289,7 @@ $material_stats = [
                             <i class="fas fa-book"></i>
                         </div>
                         <div class="stat-number"><?= $material_stats['total'] ?></div>
-                        <div class="stat-label">Total Materials</div>
+                        <div class="stat-label"><?= $lang['total_materials'] ?></div>
                     </div>
                     
                     <div class="stat-card">
@@ -346,7 +297,7 @@ $material_stats = [
                             <i class="fas fa-check-circle"></i>
                         </div>
                         <div class="stat-number"><?= $material_stats['available'] ?></div>
-                        <div class="stat-label">Available</div>
+                        <div class="stat-label"><?= $lang['available'] ?></div>
                     </div>
                     
                     <div class="stat-card">
@@ -354,7 +305,7 @@ $material_stats = [
                             <i class="fas fa-archive"></i>
                         </div>
                         <div class="stat-number"><?= $material_stats['archived'] ?></div>
-                        <div class="stat-label">Archived</div>
+                        <div class="stat-label"><?= $lang['archived'] ?></div>
                     </div>
                     
                     <div class="stat-card">
@@ -362,7 +313,7 @@ $material_stats = [
                             <i class="fas fa-clock"></i>
                         </div>
                         <div class="stat-number"><?= $material_stats['recent'] ?></div>
-                        <div class="stat-label">Added This Week</div>
+                        <div class="stat-label"><?= $lang['added_this_week'] ?></div>
                     </div>
                 </div>
                 
@@ -370,12 +321,12 @@ $material_stats = [
                 <ul class="nav nav-tabs px-3" id="materialsTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="materials-tab" data-bs-toggle="tab" data-bs-target="#materials" type="button" role="tab">
-                            <i class="fas fa-book me-1"></i> Materials
+                            <i class="fas fa-book me-1"></i> <?= $lang['materials_tab'] ?>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab">
-                            <i class="fas fa-chart-bar me-1"></i> Statistics
+                            <i class="fas fa-chart-bar me-1"></i> <?= $lang['statistics_tab'] ?>
                         </button>
                     </li>
                 </ul>
@@ -388,15 +339,15 @@ $material_stats = [
                                 <table class="admin-table">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
-                                            <th>Title</th>
-                                            <th>Type</th>
-                                            <th>Authors</th>
-                                            <th>Publisher</th>
-                                            <th>Year</th>
-                                            <th>Language</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
+                                            <th><?= $lang['id'] ?></th>
+                                            <th><?= $lang['title'] ?></th>
+                                            <th><?= $lang['type'] ?></th>
+                                            <th><?= $lang['authors'] ?></th>
+                                            <th><?= $lang['publisher'] ?></th>
+                                            <th><?= $lang['year'] ?></th>
+                                            <th><?= $lang['language'] ?></th>
+                                            <th><?= $lang['status'] ?></th>
+                                            <th><?= $lang['actions'] ?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -416,25 +367,28 @@ $material_stats = [
                                                 <td><?= $material['publication_year'] ?? '' ?></td>
                                                 <td><?= $languages[$material['language']] ?? $material['language'] ?></td>
                                                 <td>
+                                                    <?php 
+                                                    $status_trans = $status_translations[$default_language][$material['status']] ?? ucfirst($material['status']);
+                                                    ?>
                                                     <span class="status-badge status-<?= $material['status'] ?>">
-                                                        <?= ucfirst($material['status']) ?>
+                                                        <?= $status_trans ?>
                                                     </span>
                                                 </td>
                                                 <td>
                                                     <div class="action-btns">
-                                                        <a href="edit.php?id=<?= $material['item_id'] ?>" class="action-btn btn-edit" title="Edit">
+                                                        <a href="edit.php?id=<?= $material['item_id'] ?>" class="action-btn btn-edit" title="<?= $lang['edit'] ?>">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                         <?php if ($material['status'] === 'available'): ?>
-                                                            <a href="?action=change_status&id=<?= $material['item_id'] ?>&status=archived&page=<?= $page ?>" class="action-btn btn-archive" title="Archive">
+                                                            <a href="?action=change_status&id=<?= $material['item_id'] ?>&status=archived&page=<?= $page ?>" class="action-btn btn-archive" title="<?= $lang['archive'] ?>">
                                                                 <i class="fas fa-archive"></i>
                                                             </a>
                                                         <?php else: ?>
-                                                            <a href="?action=change_status&id=<?= $material['item_id'] ?>&status=available&page=<?= $page ?>" class="action-btn btn-success" title="Restore">
+                                                            <a href="?action=change_status&id=<?= $material['item_id'] ?>&status=available&page=<?= $page ?>" class="action-btn btn-success" title="<?= $lang['restore'] ?>">
                                                                 <i class="fas fa-box-open"></i>
                                                             </a>
                                                         <?php endif; ?>
-                                                        <a href="?action=delete_material&id=<?= $material['item_id'] ?>&page=<?= $page ?>" class="action-btn btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this material?');">
+                                                        <a href="?action=delete_material&id=<?= $material['item_id'] ?>&page=<?= $page ?>" class="action-btn btn-delete" title="<?= $lang['delete'] ?>" onclick="return confirm('<?= $default_language === 'GR' ? 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το υλικό;' : 'Are you sure you want to delete this material?' ?>');">
                                                             <i class="fas fa-trash"></i>
                                                         </a>
                                                     </div>
@@ -448,7 +402,16 @@ $material_stats = [
                             <!-- Pagination -->
                             <div class="pagination-container">
                                 <div class="pagination-info">
-                                    Showing <?= $offset + 1 ?> to <?= min($offset + $itemsPerPage, $totalItems) ?> of <?= $totalItems ?> entries
+                                    <?= sprintf(
+                                        '%s %d %s %d %s %d %s',
+                                        $lang['showing'],
+                                        $offset + 1,
+                                        $lang['to'],
+                                        min($offset + $itemsPerPage, $totalItems),
+                                        $lang['of'],
+                                        $totalItems,
+                                        $lang['entries']
+                                    ) ?>
                                 </div>
                                 
                                 <nav>
@@ -483,7 +446,7 @@ $material_stats = [
                                 <div class="col-md-6">
                                     <div class="admin-card">
                                         <div class="card-header">
-                                            <span>Material Types Distribution</span>
+                                            <span><?= $lang['material_types_distribution'] ?></span>
                                         </div>
                                         <div class="card-body">
                                             <div class="chart-container">
@@ -496,7 +459,7 @@ $material_stats = [
                                 <div class="col-md-6">
                                     <div class="admin-card">
                                         <div class="card-header">
-                                            <span>Language Distribution</span>
+                                            <span><?= $lang['language_distribution'] ?></span>
                                         </div>
                                         <div class="card-body">
                                             <div class="chart-container">
@@ -511,7 +474,7 @@ $material_stats = [
                                 <div class="col-md-6">
                                     <div class="admin-card">
                                         <div class="card-header">
-                                            <span>Publication Years</span>
+                                            <span><?= $lang['publication_years'] ?></span>
                                         </div>
                                         <div class="card-body">
                                             <div class="chart-container">
@@ -524,7 +487,7 @@ $material_stats = [
                                 <div class="col-md-6">
                                     <div class="admin-card">
                                         <div class="card-header">
-                                            <span>Top Authors</span>
+                                            <span><?= $lang['top_authors'] ?></span>
                                         </div>
                                         <div class="card-body">
                                             <div class="chart-container">
@@ -556,7 +519,15 @@ $material_stats = [
         by_type: <?= json_encode($material_stats['by_type']) ?>,
         by_language: <?= json_encode($material_stats['by_language']) ?>,
         by_year: <?= json_encode($material_stats['by_year']) ?>,
-        top_authors: <?= json_encode($material_stats['top_authors']) ?>
+        top_authors: <?= json_encode($material_stats['top_authors']) ?>,
+        lang: {
+            material_types_distribution: "<?= $lang['material_types_distribution'] ?>",
+            language_distribution: "<?= $lang['language_distribution'] ?>",
+            publication_years: "<?= $lang['publication_years'] ?>",
+            top_authors: "<?= $lang['top_authors'] ?>",
+            publications: "<?= $default_language === 'GR' ? 'Δημοσιεύσεις' : 'Publications' ?>",
+            material_count: "<?= $default_language === 'GR' ? 'Αριθμός Υλικών' : 'Number of Materials' ?>"
+        }
     };
     
     // Function to initialize charts
@@ -586,7 +557,7 @@ $material_stats = [
                         legend: { position: 'right' },
                         title: { 
                             display: true,
-                            text: 'Material Types Distribution'
+                            text: statsData.lang.material_types_distribution
                         }
                     }
                 }
@@ -617,7 +588,7 @@ $material_stats = [
                         legend: { position: 'right' },
                         title: { 
                             display: true,
-                            text: 'Language Distribution'
+                            text: statsData.lang.language_distribution
                         }
                     }
                 }
@@ -630,7 +601,7 @@ $material_stats = [
             const yearData = {
                 labels: Object.keys(statsData.by_year),
                 datasets: [{
-                    label: 'Publications',
+                    label: statsData.lang.publications,
                     data: Object.values(statsData.by_year),
                     backgroundColor: '#3498db'
                 }]
@@ -645,13 +616,16 @@ $material_stats = [
                     scales: { 
                         y: { beginAtZero: true },
                         x: { 
-                            title: { display: true, text: 'Publication Year' }
+                            title: { 
+                                display: true, 
+                                text: "<?= $default_language === 'GR' ? 'Έτος Δημοσίευσης' : 'Publication Year' ?>" 
+                            }
                         }
                     },
                     plugins: {
                         title: { 
                             display: true,
-                            text: 'Publications by Year'
+                            text: statsData.lang.publication_years
                         }
                     }
                 }
@@ -667,7 +641,7 @@ $material_stats = [
             const authorsData = {
                 labels: authorNames,
                 datasets: [{
-                    label: 'Number of Materials',
+                    label: statsData.lang.material_count,
                     data: authorCounts,
                     backgroundColor: '#9b59b6'
                 }]
@@ -687,7 +661,7 @@ $material_stats = [
                         legend: { display: false },
                         title: { 
                             display: true,
-                            text: 'Top Authors by Material Count'
+                            text: statsData.lang.top_authors
                         }
                     }
                 }
@@ -704,6 +678,40 @@ $material_stats = [
             initCharts();
         }
     });
+    </script>
+
+
+
+
+
+
+ <script>
+        // Toggle sidebar on mobile
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('mainMenu').classList.toggle('expanded');
+        });
+        
+        // Add active class to clicked menu items
+        const menuItems = document.querySelectorAll('.main-menu li');
+        menuItems.forEach(item => {
+            item.addEventListener('click', function() {
+                menuItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('mainMenu');
+            const toggleBtn = document.getElementById('menuToggle');
+            
+            if (window.innerWidth <= 768 && 
+                !menu.contains(event.target) && 
+                event.target !== toggleBtn &&
+                menu.classList.contains('expanded')) {
+                menu.classList.remove('expanded');
+            }
+        });
     </script>
 </body>
 </html>

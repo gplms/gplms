@@ -1,25 +1,21 @@
 <?php
 session_start();
-
-// Load configuration file containing constants and environment settings
 require_once '../conf/config.php';
+require_once '../conf/translation.php';
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
-// Get item ID
 $item_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$item_id) {
     header("Location: search.php");
     exit;
 }
 
-// Get item details
 $stmt = $pdo->prepare("
-    SELECT li.*, u.username AS added_by_username
+    SELECT li.*, u.username AS added_by_username, u.user_id AS creator_id
     FROM library_items li
     LEFT JOIN users u ON li.added_by = u.user_id
     WHERE li.item_id = ?
@@ -34,37 +30,35 @@ if (!$item) {
 
 // Check permissions
 $can_delete = false;
-if ($_SESSION['role'] === 'Administrator') {
-    $can_delete = true;
-} elseif ($item['added_by'] == $_SESSION['user_id']) {
+$is_admin = ($_SESSION['role'] === 'Administrator');
+$is_creator = ($item['creator_id'] == $_SESSION['user_id']);
+
+if ($is_admin || ($_SESSION['role'] === 'Librarian' && $is_creator)) {
     $can_delete = true;
 }
 
 if (!$can_delete) {
-    header("Location: search.php");
+    // Redirect to request_action.php for delete request
+    header("Location: request_action.php?action=delete&id=$item_id");
     exit;
 }
 
-// Handle deletion
+// Handle deletion if user has permission
 $success = false;
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
         $pdo->beginTransaction();
-        
-        // Delete author relationships
         $stmt = $pdo->prepare("DELETE FROM item_authors WHERE item_id = ?");
         $stmt->execute([$item_id]);
         
-        // Delete the item
         $stmt = $pdo->prepare("DELETE FROM library_items WHERE item_id = ?");
         $stmt->execute([$item_id]);
         
         $pdo->commit();
         $success = true;
         
-        // Log the deletion
         $stmt = $pdo->prepare("
             INSERT INTO activity_logs (user_id, action, target_object, details, ip_address) 
             VALUES (?, ?, ?, ?, ?)
@@ -82,10 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 }
 
-// Redirect with status message
 if ($success) {
-    header("Location: search.php?success=Material+deleted+successfully");
+    header("Location: search.php?success=" . urlencode($lang['material_deleted_successfully'] ?? 'Material deleted successfully'));
 } else {
-    header("Location: search.php?error=" . urlencode($error ?: "Error deleting material"));
+    header("Location: search.php?error=" . urlencode($error ?: ($lang['error_deleting_material'] ?? 'Error deleting material')));
 }
 exit;

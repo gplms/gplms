@@ -17,12 +17,13 @@ require_once '../conf/check-session.php';
 // Load configuration file containing constants and environment settings
 require_once '../conf/config.php';
 
+require_once 'maintenance_check.php';
+
+require_once '../conf/translation.php'; // Include the translation component
 
 
 
-
-
-
+require_once '../functions/fetch-lib-name.php';
 
 /**
  * Filter Handling Section
@@ -90,8 +91,21 @@ if (!empty($whereClauses)) {
  * Calculates pagination values and ensures page number validity.
  * Uses separate count query to determine total pages.
  */
-$perPage = 10;  // Number of logs per page
-// Validate and sanitize page input
+// Fetch items per page from database
+$perPage = 10;  // Default value if setting not found
+try {
+    $stmt = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'items_per_page'");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($result && is_numeric($result['setting_value'])) {
+        $perPage = (int)$result['setting_value'];
+    }
+} catch (PDOException $e) {
+    error_log("Items per page setting error: " . $e->getMessage());
+    // Keep default value
+}
+
+
+
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $perPage;  // Calculate SQL offset
 
@@ -266,10 +280,13 @@ function formatTimestamp($timestamp) {
     <link rel="stylesheet" href="../styles/activity-log.css">
         <link rel="stylesheet" href="../styles/general/general-main-styles.css">
         <link rel="stylesheet" href="../styles/components/topbar.css">
-        <link rel="stylesheet" href="../styles/components/sidebar.css">
+
         <link rel="stylesheet" href="../styles/responsive/responsive.css">
 
             <link rel="icon" type="image/png" href="../../assets/logo-l.png">
+            <link rel="stylesheet" href="../styles/components/sidebar1.css">
+
+        
 
 <body>
     
@@ -278,7 +295,7 @@ function formatTimestamp($timestamp) {
          - Persistent navigation panel
          - Loaded from shared component file
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-    <?php include '../components/sidebar.php'; ?>
+<?php include '../components/sidebar1.php'; ?>
 
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
          MAIN CONTENT COMPONENT

@@ -4,11 +4,11 @@
             <button class="btn btn-primary btn-toggle" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h4>Publishers Manager</h4>
+            <h4><?= $lang['publishers_manager'] ?></h4>
             <div>
-                <span class="me-3">Welcome, <?= $_SESSION['username'] ?></span>
+                <span class="me-3"><?= $lang['welcome'] ?>, <?= $_SESSION['username'] ?></span>
                 <a href="?logout" class="btn btn-outline-danger btn-sm">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i> <?= $lang['logout'] ?>
                 </a>
             </div>
         </div>
@@ -16,14 +16,14 @@
         <?php if ($success_msg): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fas fa-check-circle me-2"></i> <?= $success_msg ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= $lang['close'] ?>"></button>
             </div>
         <?php endif; ?>
         
         <?php if ($error_msg): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-circle me-2"></i> <?= $error_msg ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= $lang['close'] ?>"></button>
             </div>
         <?php endif; ?>
         
@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['total_publishers'] ?></div>
-                    <div class="stat-label">Total Publishers</div>
+                    <div class="stat-label"><?= $lang['total_publishers'] ?></div>
                 </div>
             </div>
             
@@ -45,7 +45,7 @@
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['publishers_with_items'] ?></div>
-                    <div class="stat-label">Publishers with Items</div>
+                    <div class="stat-label"><?= $lang['publishers_with_items'] ?></div>
                 </div>
             </div>
             
@@ -55,7 +55,7 @@
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['items_in_publishers'] ?></div>
-                    <div class="stat-label">Items in Publishers</div>
+                    <div class="stat-label"><?= $lang['items_in_publishers'] ?></div>
                 </div>
             </div>
             
@@ -65,7 +65,7 @@
                 </div>
                 <div>
                     <div class="stat-number"><?= $stats['recently_updated'] ?></div>
-                    <div class="stat-label">Recently Updated</div>
+                    <div class="stat-label"><?= $lang['recently_updated'] ?></div>
                 </div>
             </div>
         </div>
@@ -74,9 +74,9 @@
             <div class="col-md-7">
                 <div class="admin-card">
                     <div class="card-header">
-                        <span>Manage Publishers</span>
+                        <span><?= $lang['manage_publishers'] ?></span>
                         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#publisherModal">
-                            <i class="fas fa-plus me-1"></i> Add Publisher
+                            <i class="fas fa-plus me-1"></i> <?= $lang['add_publisher'] ?>
                         </button>
                     </div>
                     <div class="card-body">
@@ -84,12 +84,12 @@
                             <table class="admin-table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Publisher Name</th>
-                                        <th>Contact Info</th>
-                                        <th>Website</th>
-                                        <th>Items</th>
-                                        <th>Actions</th>
+                                        <th><?= $lang['id'] ?></th>
+                                        <th><?= $lang['publisher_name'] ?></th>
+                                        <th><?= $lang['contact_info'] ?></th>
+                                        <th><?= $lang['website'] ?></th>
+                                        <th><?= $lang['items'] ?></th>
+                                        <th><?= $lang['actions'] ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -97,23 +97,23 @@
                                         <tr>
                                             <td><?= $publisher['publisher_id'] ?></td>
                                             <td><?= $publisher['name'] ?></td>
-                                            <td><?= $publisher['contact_info'] ? substr($publisher['contact_info'], 0, 30) . '...' : 'N/A' ?></td>
+                                            <td><?= $publisher['contact_info'] ? substr($publisher['contact_info'], 0, 30) . '...' : $lang['na'] ?></td>
                                             <td>
                                                 <?php if (!empty($publisher['website'])): ?>
                                                     <a href="<?= $publisher['website'] ?>" class="website-link" target="_blank">
-                                                        <i class="fas fa-external-link-alt me-1"></i> Visit
+                                                        <i class="fas fa-external-link-alt me-1"></i> <?= $lang['visit'] ?>
                                                     </a>
                                                 <?php else: ?>
-                                                    N/A
+                                                    <?= $lang['na'] ?>
                                                 <?php endif; ?>
                                             </td>
                                             <td><?= $publisher['item_count'] ?></td>
                                             <td>
                                                 <div class="action-btns">
-                                                    <a href="?edit_publisher=<?= $publisher['publisher_id'] ?>" class="action-btn btn-edit" title="Edit">
+                                                    <a href="?edit_publisher=<?= $publisher['publisher_id'] ?>" class="action-btn btn-edit" title="<?= $lang['edit'] ?>">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="?delete=publisher&id=<?= $publisher['publisher_id'] ?>" class="action-btn btn-delete" title="Delete" onclick="return confirm('Are you sure you want to delete this publisher?')">
+                                                    <a href="?delete=publisher&id=<?= $publisher['publisher_id'] ?>" class="action-btn btn-delete" title="<?= $lang['delete'] ?>" onclick="return confirm('<?= $lang['confirm_delete_publisher'] ?>')">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
                                                 </div>
@@ -130,7 +130,7 @@
             <div class="col-md-5">
                 <div class="admin-card">
                     <div class="card-header">
-                        <span>Publisher Distribution</span>
+                        <span><?= $lang['publisher_distribution'] ?></span>
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
@@ -141,7 +141,7 @@
                 
                 <div class="admin-card mt-4">
                     <div class="card-header">
-                        <span>Recently Updated Publishers</span>
+                        <span><?= $lang['recently_updated_publishers'] ?></span>
                     </div>
                     <div class="card-body">
                         <div class="activity-list">
@@ -153,15 +153,15 @@
                                     <div>
                                         <div class="fw-bold"><?= $publisher['name'] ?></div>
                                         <div class="text-muted small">
-                                            Updated: <?= date('M d, Y', strtotime($publisher['last_modified'])) ?>
+                                            <?= $lang['updated'] ?>: <?= date('M d, Y', strtotime($publisher['last_modified'])) ?>
                                         </div>
                                         <div class="mt-1">
                                             <span class="badge bg-light text-dark">
-                                                <i class="fas fa-book me-1"></i> <?= $publisher['item_count'] ?> items
+                                                <i class="fas fa-book me-1"></i> <?= $publisher['item_count'] ?> <?= $lang['items'] ?>
                                             </span>
                                             <?php if (!empty($publisher['website'])): ?>
                                                 <a href="<?= $publisher['website'] ?>" class="badge bg-info text-white ms-1" target="_blank">
-                                                    <i class="fas fa-external-link-alt me-1"></i> Website
+                                                    <i class="fas fa-external-link-alt me-1"></i> <?= $lang['website'] ?>
                                                 </a>
                                             <?php endif; ?>
                                         </div>

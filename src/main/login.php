@@ -4,6 +4,10 @@ session_start();
 // Load configuration file containing constants and environment settings
 require_once '../conf/config.php';
 
+require_once '../conf/translation.php';
+
+require_once '../functions/fetch-lib-name.php';
+
 // Handle login
 $error_message = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

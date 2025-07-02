@@ -1,4 +1,22 @@
 <?php
+// Load configuration file
+require_once '../conf/config.php';
+require_once '../conf/translation.php'; // Load translation library
+
+// Get MailerSend settings from database
+$stmt = $pdo->query("
+    SELECT setting_key, setting_value 
+    FROM system_settings 
+    WHERE setting_key IN (
+        'mailersend_api_key',
+        'mailersend_sender_email',
+        'mailersend_sender_name',
+        'contact_form_recipient_email',
+        'contact_form_recipient_name'
+    )
+");
+$settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
 // Handle form submission
 $message_sent = false;
 $error_message = '';
@@ -11,83 +29,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Basic validation
     if (empty($name) || empty($email) || empty($subject) || empty($message)) {
-        $error_message = "All fields are required.";
+        $error_message = $lang['all_fields_required'];
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error_message = "Please enter a valid email address.";
+        $error_message = $lang['invalid_email'];
     } else {
         // MailerSend API Configuration
-        $apiKey = 'YOUR API KEY';
+        $apiKey = $settings['mailersend_api_key'] ?? '';
+        $senderEmail = $settings['mailersend_sender_email'] ?? '';
+        $senderName = $settings['mailersend_sender_name'] ?? $lang['library_system'];
+        $recipientEmail = $settings['contact_form_recipient_email'] ?? '';
+        $recipientName = $settings['contact_form_recipient_name'] ?? $lang['system_administrator'];
         
-        // Use a verified test domain format
-        $senderEmail = 'YOU SENDER DOMAIN';
-        $senderName = 'Library System';
-        $recipientEmail = 'RECIPIENT EMAIL';
-        $recipientName = 'System Administrator';
-        
-        // Prepare email data
-        $emailData = [
-            'from' => [
-                'email' => $senderEmail,
-                'name' => $senderName
-            ],
-            'to' => [
-                [
-                    'email' => $recipientEmail,
-                    'name' => $recipientName
-                ]
-            ],
-            'subject' => "Library Support: $subject",
-            'text' => "Name: $name\nEmail: $email\n\nMessage:\n$message",
-            'html' => "
-                <h2>Library System Support Request</h2>
-                <p><strong>From:</strong> $name ($email)</p>
-                <p><strong>Subject:</strong> $subject</p>
-                <p><strong>Message:</strong></p>
-                <p>$message</p>
-                <hr>
-                <p><small>This message was sent from the Library System contact form</small></p>
-            "
-        ];
-        
-        // Send email via MailerSend API
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://api.mailersend.com/v1/email');
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($emailData));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $apiKey
-        ]);
-        
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-        
-        // Check response
-        if ($httpCode >= 200 && $httpCode < 300) {
-            $message_sent = true;
+        // Check required settings
+        if (empty($apiKey) || empty($senderEmail) || empty($recipientEmail)) {
+            $error_message = $lang['email_config_error'];
         } else {
-            // Improved error handling
-            $error_detail = 'Unknown error';
+            // Prepare email data
+            $emailData = [
+                'from' => [
+                    'email' => $senderEmail,
+                    'name' => $senderName
+                ],
+                'to' => [
+                    [
+                        'email' => $recipientEmail,
+                        'name' => $recipientName
+                    ]
+                ],
+                'subject' => $lang['email_subject_prefix'] . $subject,
+                'text' => $lang['name_label'] . $name . "\n" . 
+                          $lang['email_label'] . $email . "\n\n" . 
+                          $lang['message_label'] . ":\n" . $message,
+                'html' => "
+                    <h2>" . $lang['email_html_header'] . "</h2>
+                    <p><strong>" . $lang['from_label'] . ":</strong> $name ($email)</p>
+                    <p><strong>" . $lang['subject_label'] . ":</strong> $subject</p>
+                    <p><strong>" . $lang['message_label'] . ":</strong></p>
+                    <p>$message</p>
+                    <hr>
+                    <p><small>" . $lang['email_footer'] . "</small></p>
+                "
+            ];
             
-            if (!empty($curlError)) {
-                $error_detail = "cURL Error: $curlError";
-            } elseif (!empty($response)) {
-                $responseData = json_decode($response, true);
+            // Send email via MailerSend API
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, 'https://api.mailersend.com/v1/email');
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($emailData));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey
+            ]);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+            
+            // Check response
+            if ($httpCode >= 200 && $httpCode < 300) {
+                $message_sent = true;
+            } else {
+                // Improved error handling
+                $error_detail = $lang['unknown_error'];
                 
-                // Handle MailerSend's error format
-                if (isset($responseData['errors'][0]['message'])) {
-                    $error_detail = $responseData['errors'][0]['message'];
-                } elseif (isset($responseData['message'])) {
-                    $error_detail = $responseData['message'];
-                } else {
-                    $error_detail = "API Error: " . substr($response, 0, 100);
+                if (!empty($curlError)) {
+                    $error_detail = $lang['curl_error'] . $curlError;
+                } elseif (!empty($response)) {
+                    $responseData = json_decode($response, true);
+                    
+                    // Handle MailerSend's error format
+                    if (isset($responseData['errors'][0]['message'])) {
+                        $error_detail = $responseData['errors'][0]['message'];
+                    } elseif (isset($responseData['message'])) {
+                        $error_detail = $responseData['message'];
+                    } else {
+                        $error_detail = $lang['api_error'] . substr($response, 0, 100);
+                    }
                 }
+                
+                $error_message = $lang['email_send_error'] . $error_detail;
             }
-            
-            $error_message = "Failed to send message. Error: $error_detail";
         }
     }
 }
@@ -97,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | Contact Administrator</title>
+    <title><?= $lang['page_title_contact'] ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
@@ -390,28 +413,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <div class="contact-container">
             <div class="contact-header">
-                <h1 class="contact-title">Contact System Administrators</h1>
-                <p class="contact-subtitle">Need assistance with the library system? Our administrators are here to help.</p>
+                <h1 class="contact-title"><?= $lang['contact_title'] ?></h1>
+                <p class="contact-subtitle"><?= $lang['contact_subtitle'] ?></p>
             </div>
             
             <div class="contact-content">
                 <!-- Contact Form -->
                 <div class="contact-form">
-                    <h2 class="info-title">Send a Message</h2>
+                    <h2 class="info-title"><?= $lang['send_message'] ?></h2>
                     
                     <?php if ($message_sent): ?>
                         <div class="success-message">
                             <i class="fas fa-check-circle"></i>
                             <div>
-                                <strong>Thank you for your message!</strong> 
-                                <p>We'll get back to you as soon as possible.</p>
+                                <strong><?= $lang['thank_you_message'] ?></strong> 
+                                <p><?= $lang['response_time_message'] ?></p>
                             </div>
                         </div>
                     <?php elseif ($error_message): ?>
                         <div class="error-message">
                             <i class="fas fa-exclamation-circle"></i>
                             <div>
-                                <strong>Error:</strong> 
+                                <strong><?= $lang['error'] ?>:</strong> 
                                 <p><?= $error_message ?></p>
                             </div>
                         </div>
@@ -419,27 +442,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     <form method="POST" action="">
                         <div class="form-group">
-                            <label class="form-label" for="name">Your Name</label>
-                            <input type="text" name="name" class="form-control" id="name" placeholder="John Smith" required value="<?= $_POST['name'] ?? '' ?>">
+                            <label class="form-label" for="name"><?= $lang['your_name'] ?></label>
+                            <input type="text" name="name" class="form-control" id="name" placeholder="<?= $lang['name_placeholder'] ?>" required value="<?= $_POST['name'] ?? '' ?>">
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label" for="email">Email Address</label>
-                            <input type="email" name="email" class="form-control" id="email" placeholder="john@example.com" required value="<?= $_POST['email'] ?? '' ?>">
+                            <label class="form-label" for="email"><?= $lang['email_address'] ?></label>
+                            <input type="email" name="email" class="form-control" id="email" placeholder="<?= $lang['email_placeholder'] ?>" required value="<?= $_POST['email'] ?? '' ?>">
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label" for="subject">Subject</label>
-                            <input type="text" name="subject" class="form-control" id="subject" placeholder="How can we help?" required value="<?= $_POST['subject'] ?? '' ?>">
+                            <label class="form-label" for="subject"><?= $lang['subject'] ?></label>
+                            <input type="text" name="subject" class="form-control" id="subject" placeholder="<?= $lang['subject_placeholder'] ?>" required value="<?= $_POST['subject'] ?? '' ?>">
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label" for="message">Message</label>
-                            <textarea name="message" class="form-control" id="message" placeholder="Describe your issue or question..." required><?= $_POST['message'] ?? '' ?></textarea>
+                            <label class="form-label" for="message"><?= $lang['message'] ?></label>
+                            <textarea name="message" class="form-control" id="message" placeholder="<?= $lang['message_placeholder'] ?>" required><?= $_POST['message'] ?? '' ?></textarea>
                         </div>
                         
                         <button type="submit" class="btn-send">
-                            <i class="fas fa-paper-plane"></i> Send Message
+                            <i class="fas fa-paper-plane"></i> <?= $lang['send_message_button'] ?>
                         </button>
                     </form>
                 </div>
@@ -447,15 +470,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Contact Information -->
                 <div class="info-section">
                     <div class="info-card">
-                        <h3 class="info-title">Administration Contact</h3>
+                        <h3 class="info-title"><?= $lang['administration_contact'] ?></h3>
                         
                         <div class="contact-method">
                             <div class="contact-icon">
                                 <i class="fas fa-envelope"></i>
                             </div>
                             <div class="contact-details">
-                                <strong>System Support</strong>
-                                admin@librarysystem.com
+                                <strong><?= $lang['system_support'] ?></strong>
+                                <?= htmlspecialchars($settings['contact_form_recipient_email'] ?? 'admin@librarysystem.com') ?>
                             </div>
                         </div>
                         
@@ -464,7 +487,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="fas fa-phone"></i>
                             </div>
                             <div class="contact-details">
-                                <strong>Support Line</strong>
+                                <strong><?= $lang['support_line'] ?></strong>
                                 (123) 456-7890
                             </div>
                         </div>
@@ -474,32 +497,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="fas fa-clock"></i>
                             </div>
                             <div class="contact-details">
-                                <strong>Office Hours</strong>
-                                Mon-Fri: 8:00 AM - 6:00 PM
+                                <strong><?= $lang['office_hours'] ?></strong>
+                                <?= $lang['office_hours_value'] ?>
                             </div>
                         </div>
                     </div>
                     
                     <div class="info-card">
-                        <h3 class="info-title">Common Support Requests</h3>
+                        <h3 class="info-title"><?= $lang['common_support_requests'] ?></h3>
                         
                         <ul class="feature-list">
-                            <li>Account access issues</li>
-                            <li>Password reset requests</li>
-                            <li>System error reports</li>
-                            <li>Feature requests</li>
-                            <li>Permission changes</li>
-                            <li>Training inquiries</li>
+                            <li><?= $lang['account_access_issues'] ?></li>
+                            <li><?= $lang['password_reset_requests'] ?></li>
+                            <li><?= $lang['system_error_reports'] ?></li>
+                            <li><?= $lang['feature_requests'] ?></li>
+                            <li><?= $lang['permission_changes'] ?></li>
+                            <li><?= $lang['training_inquiries'] ?></li>
                         </ul>
                     </div>
-                    
-          
                 </div>
             </div>
         </div>
     </div>
-    
-
     
     <script>
         // Simple animation for form elements

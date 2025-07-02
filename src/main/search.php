@@ -1,9 +1,13 @@
 <?php
-// Start session for user authentication
-session_start();
 
+
+require_once 'maintenance_check.php';
 // Load configuration file containing constants and environment settings
 require_once '../conf/config.php';
+
+require_once '../conf/translation.php';
+
+require_once '../functions/fetch-lib-name.php';
 
 // Handle login
 if (isset($_POST['login'])) {

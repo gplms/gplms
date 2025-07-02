@@ -3,6 +3,10 @@ session_start();
 
 // Load configuration file containing constants and environment settings
 require_once '../conf/config.php';
+
+require_once '../conf/translation.php';
+
+require_once '../functions/fetch-lib-name.php';
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -17,7 +21,7 @@ $current_user = $stmt->fetch();
 
 // Check if user is admin
 if ($_SESSION['role'] !== 'Administrator') {
-    $error_msg = "Access denied. You must be an administrator to access this page.";
+    $error_msg = $lang['access_denied_admin'];
 }
 
 // Function to log activity
@@ -54,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_POST['role_id'],
                     $_POST['status']
                 ]);
-                $success_msg = "User added successfully!";
-                logActivity($pdo, $current_user_id, 'INSERT', 'users', 'Added new user: '.$_POST['username']);
+                $success_msg = $lang['user_added_success'];
+                logActivity($pdo, $current_user_id, 'INSERT', 'users', $lang['log_added_user'] . ': '.$_POST['username']);
             }
             elseif ($action_type === 'update_user') {
                 $update_fields = [
@@ -81,8 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute(array_values($update_fields));
                 
-                $success_msg = "User updated successfully!";
-                logActivity($pdo, $current_user_id, 'UPDATE', 'users', 'Updated user: '.$_POST['username']);
+                $success_msg = $lang['user_updated_success'];
+                logActivity($pdo, $current_user_id, 'UPDATE', 'users', $lang['log_updated_user'] . ': '.$_POST['username']);
             }
             
             $pdo->commit();
@@ -92,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } catch (Exception $e) {
             $pdo->rollBack();
-            $error_msg = "Error: " . $e->getMessage();
+            $error_msg = $lang['error_generic'] . $e->getMessage();
         }
     }
 }
@@ -106,14 +110,14 @@ if (isset($_GET['status_change']) && isset($_GET['id'])) {
         $stmt = $pdo->prepare("UPDATE users SET status = ? WHERE user_id = ?");
         $stmt->execute([$new_status, $id]);
         
-        $success_msg = "User status updated successfully!";
-        logActivity($pdo, $current_user_id, 'UPDATE', 'users', 'Changed status for user ID: '.$id);
+        $success_msg = $lang['user_status_updated_success'];
+        logActivity($pdo, $current_user_id, 'UPDATE', 'users', $lang['log_changed_status_user'] . ': '.$id);
         
         // Redirect after status change
         header("Location: users-manager.php");
         exit;
     } catch (Exception $e) {
-        $error_msg = "Error updating status: " . $e->getMessage();
+        $error_msg = $lang['error_updating_status'] . $e->getMessage();
     }
 }
 
@@ -124,19 +128,19 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'user' && isset($_GET['id'])) 
     try {
         // Check if user is trying to delete themselves
         if ($id === $current_user_id) {
-            $error_msg = "You cannot delete your own account!";
+            $error_msg = $lang['cannot_delete_own_account'];
         } else {
             $stmt = $pdo->prepare("DELETE FROM users WHERE user_id = ?");
             $stmt->execute([$id]);
-            $success_msg = "User deleted successfully!";
-            logActivity($pdo, $current_user_id, 'DELETE', 'users', 'Deleted user ID: '.$id);
+            $success_msg = $lang['user_deleted_success'];
+            logActivity($pdo, $current_user_id, 'DELETE', 'users', $lang['log_deleted_user'] . ': '.$id);
             
             // Redirect after delete
             header("Location: users-manager.php");
             exit;
         }
     } catch (Exception $e) {
-        $error_msg = "Error deleting user: " . $e->getMessage();
+        $error_msg = $lang['error_deleting_user'] . $e->getMessage();
     }
 }
 
@@ -166,18 +170,20 @@ if (isset($_SESSION['edit_user_id'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $default_language ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | Users Manager</title>
+    <title><?= $lang['page_title_users_manager'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="../styles/users-manager-gen-styles.css" rel="stylesheet">
+    <link href="../styles/components/sidebar1.css" rel="stylesheet">
+
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
 </head>
 <body>
-    <?php include '../components/user-sidebar.php'; ?>
+    <?php include '../components/sidebar1.php'; ?>
     <?php include '../components/user-main-content.php'; ?>
     <?php include '../components/user-modal.php'; ?>
 

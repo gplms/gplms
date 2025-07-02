@@ -1,17 +1,21 @@
 <?php
 session_start();
 
-// Check if user is admin
-if (!isset($_SESSION['role'])) {
-    header("Location: login.php");
-    exit;
-} elseif ($_SESSION['role'] !== 'Administrator') {
-    header("Location: search.php");
-    exit;
-}
-
-// Load configuration file containing constants and environment settings
+require_once '../conf/check-session.php';
 require_once '../conf/config.php';
+require_once 'maintenance_check.php';
+require_once '../conf/translation.php'; // Include the translation component
+
+$library_name = 'GPLMS'; // Default value
+try {
+    $stmt = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'library_name'");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($result && !empty($result['setting_value'])) {
+        $library_name = $result['setting_value'];
+    }
+} catch (Exception $e) {
+    error_log("Error fetching library name: " . $e->getMessage());
+}
 
 // Add status column to roles table if it doesn't exist
 try {
@@ -64,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_POST['description'],
                     $_POST['status']
                 ]);
-                $success_msg = "Role added successfully!";
+                $success_msg = $lang['role_added'];
                 logActivity($pdo, $_SESSION['user_id'], 'INSERT', 'roles', 'Added new role: '.$_POST['role_name']);
             }
             elseif ($action_type === 'update_role') {
@@ -76,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_POST['status'],
                     $_POST['role_id']
                 ]);
-                $success_msg = "Role updated successfully!";
+                $success_msg = $lang['role_updated'];
                 logActivity($pdo, $_SESSION['user_id'], 'UPDATE', 'roles', 'Updated role: '.$_POST['role_name']);
             }
             
@@ -87,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } catch (Exception $e) {
             $pdo->rollBack();
-            $error_msg = "Error: " . $e->getMessage();
+            $error_msg = $lang['error'] . $e->getMessage();
         }
     }
 }
@@ -101,14 +105,14 @@ if (isset($_GET['status_change']) && isset($_GET['id'])) {
         $stmt = $pdo->prepare("UPDATE roles SET status = ? WHERE role_id = ?");
         $stmt->execute([$new_status, $id]);
         
-        $success_msg = "Role status updated successfully!";
+        $success_msg = $lang['status_updated'];
         logActivity($pdo, $_SESSION['user_id'], 'UPDATE', 'roles', 'Changed status for role ID: '.$id);
         
         // Redirect after status change
         header("Location: roles-manager.php");
         exit;
     } catch (Exception $e) {
-        $error_msg = "Error updating status: " . $e->getMessage();
+        $error_msg = $lang['error'] . $e->getMessage();
     }
 }
 
@@ -123,11 +127,11 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'role' && isset($_GET['id'])) 
         $userCount = $checkStmt->fetchColumn();
         
         if ($userCount > 0) {
-            $error_msg = "Cannot delete role: $userCount user(s) are assigned to this role.";
+            $error_msg = sprintf($lang['cannot_delete_role'], $userCount);
         } else {
             $stmt = $pdo->prepare("DELETE FROM roles WHERE role_id = ?");
             $stmt->execute([$id]);
-            $success_msg = "Role deleted successfully!";
+            $success_msg = $lang['role_deleted'];
             logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'roles', 'Deleted role ID: '.$id);
             
             // Redirect after delete
@@ -135,7 +139,7 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'role' && isset($_GET['id'])) 
             exit;
         }
     } catch (Exception $e) {
-        $error_msg = "Error deleting role: " . $e->getMessage();
+        $error_msg = $lang['error'] . $e->getMessage();
     }
 }
 
@@ -203,116 +207,20 @@ $roleGrowth = $pdo->query("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | Roles Manager</title>
+    <title><?= $lang['page_title'] ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
    <link href="../styles/roles-manager.css" rel="stylesheet">
    <link rel="icon" type="image/png" href="../../assets/logo-l.png">
-
-
 </head>
 <body>
-     <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h3><i class="fas fa-book me-2"></i> GPLMS</h3>
-            <hr>
-       
-            <hr>
-        </div>
-        
-        <ul class="sidebar-menu">
-            <li>
-                <a href="../main/control_panel.php" class="">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/users-manager.php">
-                    <i class="fas fa-users"></i>
-                    <span>User Management</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/roles-manager.php">
-                    <i class="fas fa-user-tag"></i>
-                    <span>Roles</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/library-catalog.php">
-                    <i class="fas fa-book"></i>
-                    <span>Library Catalog</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/materials-manager.php">
-                    <i class="fas fa-book-open"></i>
-                    <span>Materials</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/categories-manager.php">
-                    <i class="fas fa-tags"></i>
-                    <span>Categories</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/publishers-manager.php">
-                    <i class="fas fa-building"></i>
-                    <span>Publishers</span>
-                </a>
-            </li>
-            <li>
-                <a href="../main/authors-manager.php">
-                    <i class="fas fa-feather"></i>
-                    <span>Authors</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fas fa-search"></i>
-                    <span>Search</span>
-                </a>
-            </li>
-            <div class="divider"></div>
-            <li>
-                <a href="../main/settings-manager.php">
-                    <i class="fas fa-cog"></i>
-                    <span>System Settings</span>
-                </a>
-            </li>
-        
-            <li>
-                <a href="../main/activity-log.php">
-                    <i class="fas fa-history"></i>
-                    <span>Activity Log</span>
-                </a>
-            </li>
     
-            <br>
-            
-            <div class="divider"></div>
-            <li>
-                <a href="../main/search.php">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Back to Library</span>
-                </a>
-            </li>
-            <li>
-                <a href="logout.php">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </div>
+<?php include '../components/sidebar1.php'; ?>
+
 
 <?php include '../components/roles-manager-main.php'; ?>
 <?php include '../components/role-modal.php'; ?>
-
 
     <!-- Bootstrap & jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -363,7 +271,7 @@ $roleGrowth = $pdo->query("
                             legend: { position: 'right' },
                             title: { 
                                 display: true,
-                                text: 'User Distribution by Role'
+                                text: '<?= $lang['user_distribution'] ?>'
                             }
                         }
                     }
@@ -376,7 +284,7 @@ $roleGrowth = $pdo->query("
                 const activityData = {
                     labels: [<?php foreach ($roleActivity as $role): ?>'<?= $role['role_name'] ?>', <?php endforeach; ?>],
                     datasets: [{
-                        label: 'Monthly Activity',
+                        label: '<?= $lang['monthly_activity'] ?>',
                         data: [<?php foreach ($roleActivity as $role): ?><?= $role['activity_count'] ?>, <?php endforeach; ?>],
                         backgroundColor: 'rgba(52, 152, 219, 0.7)',
                         borderWidth: 1
@@ -393,7 +301,7 @@ $roleGrowth = $pdo->query("
                         plugins: {
                             title: { 
                                 display: true,
-                                text: 'Monthly Activity by Role'
+                                text: '<?= $lang['monthly_activity'] ?>'
                             }
                         }
                     }
@@ -406,7 +314,7 @@ $roleGrowth = $pdo->query("
                 const growthData = {
                     labels: [<?php foreach ($roleGrowth as $growth): ?>'<?= date('M d', strtotime($growth['date'])) ?>', <?php endforeach; ?>],
                     datasets: [{
-                        label: 'Roles Added',
+                        label: '<?= $lang['role_creation'] ?>',
                         data: [<?php foreach ($roleGrowth as $growth): ?><?= $growth['count'] ?>, <?php endforeach; ?>],
                         backgroundColor: 'rgba(155, 89, 182, 0.7)',
                         borderColor: 'rgba(155, 89, 182, 1)',
@@ -431,7 +339,7 @@ $roleGrowth = $pdo->query("
                         plugins: {
                             title: { 
                                 display: true,
-                                text: 'Role Creation Over Time'
+                                text: '<?= $lang['role_creation'] ?>'
                             }
                         }
                     }
@@ -442,7 +350,7 @@ $roleGrowth = $pdo->query("
             const statusCtx = document.getElementById('roleStatusChart')?.getContext('2d');
             if (statusCtx) {
                 const statusData = {
-                    labels: ['Active Roles', 'Inactive Roles'],
+                    labels: ['<?= $lang['active_roles'] ?>', '<?= $lang['inactive_roles'] ?>'],
                     datasets: [{
                         data: [<?= $roleStats['active_roles'] ?>, <?= $roleStats['inactive_roles'] ?>],
                         backgroundColor: [
@@ -463,7 +371,7 @@ $roleGrowth = $pdo->query("
                             legend: { position: 'right' },
                             title: { 
                                 display: true,
-                                text: 'Role Status Distribution'
+                                text: '<?= $lang['role_status'] ?>'
                             }
                         }
                     }

@@ -13,6 +13,11 @@ require_once '../conf/config.php';
 
 
 
+require_once '../conf/translation.php';
+
+require_once '../functions/fetch-lib-name.php';
+
+
 // Get data for dropdowns
 $types = $pdo->query("SELECT * FROM material_types")->fetchAll();
 $categories = $pdo->query("SELECT * FROM categories")->fetchAll();

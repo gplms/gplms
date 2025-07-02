@@ -1,11 +1,17 @@
+<?php
+// Start session and include translation component
+session_start();
+require_once '../conf/config.php';
+require_once '../conf/translation.php'; // Include the translation component
+?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $default_language === 'GR' ? 'el' : 'en' ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | 403</title>
+    <title>GPLMS - <?= $lang['403_page_title'] ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
 
     <style>
@@ -172,28 +178,25 @@
                 <i class="fas fa-ban"></i>
             </div>
             <div class="error-number">403</div>
-            <h1 class="error-title">Access Denied</h1>
+            <h1 class="error-title"><?= $lang['access_denied_title'] ?></h1>
         </div>
         
         <p class="error-message">
-            You do not have permission to access this resource. This may be due to insufficient privileges or access restrictions.
+            <?= $lang['access_denied_message1'] ?>
         </p>
         <p class="error-message">
-            If you believe this is an error, please contact your system administrator or verify your account permissions.
+            <?= $lang['access_denied_message2'] ?>
         </p>
         
         <div class="btn-container">
             <a href="login.php" class="btn-action">
-                <i class="fas fa-sign-in-alt"></i> Go to Login
+                <i class="fas fa-sign-in-alt"></i> <?= $lang['go_to_login'] ?>
             </a>
-          
         </div>
-        
-     
     </div>
     
     <div class="footer">
-        &copy; 2025 GPLMS. All rights reserved. 
+        &copy; <?= date('Y') ?> GPLMS. <?= $lang['all_rights_reserved'] ?> 
     </div>
 </body>
 </html>
