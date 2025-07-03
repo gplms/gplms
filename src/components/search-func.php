@@ -119,12 +119,8 @@
                                     `;
                                 <?php else: ?>
                                     modalActions.innerHTML = `
-                                        <button class="btn btn-warning me-2" onclick="requestEdit(${item.item_id})">
-                                            <i class="fas fa-edit me-1"></i> Request Edit
-                                        </button>
-                                        <button class="btn btn-warning" onclick="requestDelete(${item.item_id})">
-                                            <i class="fas fa-trash me-1"></i> Request Delete
-                                        </button>
+                                     
+                                     
                                     `;
                                 <?php endif; ?>
                             <?php endif; ?>

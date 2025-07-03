@@ -1,3 +1,16 @@
+<!--
+===============================================================================
+  GPLMS - General Purpose Library Management System
+  File: sidebar1.php (Custom sidebar template )
+  License: MIT (See https://opensource.org/licenses/MIT)
+  Copyright (c) 2025 Panagiotis Kotsorgios, Fotis Markantonatos & Contributors
+  https://github.com/PanagiotisKotsorgios/gplms
+
+    Thank you for using our software 😁💖
+===============================================================================
+-->
+
+
 <?php require_once'../conf/translation.php';?> 
  
  <!-- Sidebar -->
