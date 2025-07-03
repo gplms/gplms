@@ -301,11 +301,7 @@ CREATE TABLE `system_settings` (
 -- Dumping data for table `system_settings`
 --
 
-LOCK TABLES `system_settings` WRITE;
-/*!40000 ALTER TABLE `system_settings` DISABLE KEYS */;
-INSERT INTO `system_settings` VALUES (1,'library_name','GPLMS','2025-07-03 21:23:06'),(2,'default_language','GR','2025-07-03 21:23:06'),(3,'items_per_page','5','2025-07-03 21:23:06'),(4,'default_theme','light','2025-07-03 21:23:06'),(5,'maintenance_mode','0','2025-07-03 21:23:06'),(6,'allow_user_registration','1','2025-07-03 21:23:06'),(7,'default_user_role','2','2025-07-03 21:23:06'),(8,'password_reset_expiry_hours','22','2025-07-03 21:23:06'),(9,'email_notifications','1','2025-07-03 21:23:06'),(10,'mailersend_api_key','mlsn.964569ead0554911e4a75c845f3e0d4ef35b9ea34ef3314f58b93a452d8b2ff0','2025-06-30 08:44:35'),(11,'mailersend_sender_email','noreply@test-r9084zvr8wxgw63d.mlsender.net','2025-07-03 21:23:06'),(12,'mailersend_sender_name','Library System','2025-07-03 21:23:06'),(13,'contact_form_recipient_email','pkotsorgios654@gmail.com','2025-07-03 21:23:06'),(14,'contact_form_recipient_name','System Administrator','2025-07-03 21:23:06');
-/*!40000 ALTER TABLE `system_settings` ENABLE KEYS */;
-UNLOCK TABLES;
+
 
 --
 -- Table structure for table `users`
@@ -339,7 +335,8 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin','$2y$10$xhW7NZLUJWbQrt5qELgNhOOPviYJJgz28k1FV6TsHALB4QsXqvk..','System Admin','admin@library.com','',1,'active','2025-06-17 21:19:37',NULL),(15,'user','$2y$10$CwxJh3S06SfTMQssvhtmNuZ6o4fdnqSwwhh5b5Bt8oDzYZmGEs/tK','kotsorgios Panagiotis','pkotsorgios654@gmail.com','',2,'active','2025-07-02 08:58:49',NULL);
+INSERT INTO `users` VALUES (1,'admin','$2y$10$xhW7NZLUJWbQrt5qELgNhOOPviYJJgz28k1FV6TsHALB4QsXqvk..','System Admin','admin@gmail.com','',1,'active','2025-06-17 21:19:37',NULL),
+  (15,'user','$2y$10$CwxJh3S06SfTMQssvhtmNuZ6o4fdnqSwwhh5b5Bt8oDzYZmGEs/tK','Test Test','test@gmail.com','',2,'active','2025-07-02 08:58:49',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
