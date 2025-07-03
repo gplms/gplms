@@ -3,6 +3,27 @@
 
 require_once '../conf/config.php'; // Adjust path as needed
 
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+
+
+// Define public pages accessible without session
+$public_pages = ['login.php', 'maintenance.php', 'search.php'];
+
+// Current script name
+$current_page = basename($_SERVER['PHP_SELF']);
+
+// Redirect to login if:
+// - Current page isn't public
+// - No active session exists
+if (!in_array($current_page, $public_pages) && empty($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 // Get maintenance mode status from database
 $maintenance_mode = false;
 try {
@@ -15,16 +36,13 @@ try {
     error_log("Maintenance check error: " . $e->getMessage());
 }
 
-// Current script name
-$current_page = basename($_SERVER['PHP_SELF']);
-
 // Allow access if:
 // 1. Maintenance mode is disabled
 // 2. User is admin (role_id 1)
 // 3. Requesting the maintenance page itself
-// 4. Requesting the login page (so admin can log in)
+// 4. Requesting the login page
 $allowed = !$maintenance_mode || 
-           (isset($_SESSION['role_id']) && $_SESSION['role_id'] == 1) || 
+           (!empty($_SESSION['role_id']) && $_SESSION['role_id'] == 1) || 
            $current_page === 'maintenance.php' ||
            $current_page === 'login.php';
 
@@ -33,6 +51,3 @@ if (!$allowed) {
     header("Location: maintenance.php");
     exit;
 }
-?>
-
-

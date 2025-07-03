@@ -15,6 +15,13 @@ if (!isset($_SESSION['user_id'])) {
 
 // Get current user info
 $current_user_id = $_SESSION['user_id'];
+
+if ($current_user_id !== 1) {
+    header("Location: login.php");
+    exit;
+}
+
+
 $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
 $stmt->execute([$current_user_id]);
 $current_user = $stmt->fetch();
@@ -81,34 +88,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $success_msg = $lang['user_added_success'];
                     logActivity($pdo, $current_user_id, 'INSERT', 'users', $lang['log_added_user'] . ': '.$_POST['username']);
                 }
-                elseif ($action_type === 'update_user') {
-                    $update_fields = [
-                        'username' => $_POST['username'],
-                        'full_name' => $_POST['full_name'],
-                        'email' => $_POST['email'],
-                        'phone' => $_POST['phone'],
-                        'role_id' => $_POST['role_id'],
-                        'status' => $_POST['status'],
-                        'user_id' => $_POST['user_id']
-                    ];
-                    
-                    // Update password only if provided
-                    if (!empty($_POST['password'])) {
-                        $update_fields['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                        $sql = "UPDATE users SET username = ?, full_name = ?, email = ?, phone = ?, 
-                                role_id = ?, status = ?, password = ? WHERE user_id = ?";
-                    } else {
-                        $sql = "UPDATE users SET username = ?, full_name = ?, email = ?, phone = ?, 
-                                role_id = ?, status = ? WHERE user_id = ?";
+                    elseif ($action_type === 'update_user') {
+                        // Build base fields without user_id
+                        $update_fields = [
+                            'username' => $_POST['username'],
+                            'full_name' => $_POST['full_name'],
+                            'email' => $_POST['email'],
+                            'phone' => $_POST['phone'],
+                            'role_id' => $_POST['role_id'],
+                            'status' => $_POST['status']
+                        ];
+
+                        // Add password if provided
+                        if (!empty($_POST['password'])) {
+                            $update_fields['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                            $sql = "UPDATE users SET username = ?, full_name = ?, email = ?, phone = ?, 
+                                    role_id = ?, status = ?, password = ? WHERE user_id = ?";
+                        } else {
+                            $sql = "UPDATE users SET username = ?, full_name = ?, email = ?, phone = ?, 
+                                    role_id = ?, status = ? WHERE user_id = ?";
+                        }
+
+                        // Add user_id LAST for WHERE clause
+                        $update_fields['user_id'] = $_POST['user_id'];
+
+                        $stmt = $pdo->prepare($sql);
+                        $stmt->execute(array_values($update_fields));
+                        
+                        $success_msg = $lang['user_updated_success'];
+                        logActivity($pdo, $current_user_id, 'UPDATE', 'users', $lang['log_updated_user'] . ': '.$_POST['username']);
                     }
-                    
-                    $stmt = $pdo->prepare($sql);
-                    $stmt->execute(array_values($update_fields));
-                    
-                    $success_msg = $lang['user_updated_success'];
-                    logActivity($pdo, $current_user_id, 'UPDATE', 'users', $lang['log_updated_user'] . ': '.$_POST['username']);
-                }
-                
+                                    
                 $pdo->commit();
                 
                 // Redirect to clear parameters after successful form submission
@@ -151,8 +161,20 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'user' && isset($_GET['id'])) 
         if ($id === $current_user_id) {
             $error_msg = $lang['cannot_delete_own_account'];
         } else {
+            // Start transaction
+            $pdo->beginTransaction();
+            
+            // Delete related activity logs first
+            $stmt = $pdo->prepare("DELETE FROM activity_logs WHERE user_id = ?");
+            $stmt->execute([$id]);
+            
+            // Now delete the user
             $stmt = $pdo->prepare("DELETE FROM users WHERE user_id = ?");
             $stmt->execute([$id]);
+            
+            // Commit changes
+            $pdo->commit();
+            
             $success_msg = $lang['user_deleted_success'];
             logActivity($pdo, $current_user_id, 'DELETE', 'users', $lang['log_deleted_user'] . ': '.$id);
             
@@ -161,6 +183,7 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'user' && isset($_GET['id'])) 
             exit;
         }
     } catch (Exception $e) {
+        $pdo->rollBack();
         $error_msg = $lang['error_deleting_user'] . $e->getMessage();
     }
 }
