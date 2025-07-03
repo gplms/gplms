@@ -88,6 +88,9 @@ A **free** and **open-source** library management system crafted by students wit
  For additional `configuration` or `troubleshooting`, refer to the project documentation.
 
 <br>
+
+---
+
 <br>
 
 ### Project History
