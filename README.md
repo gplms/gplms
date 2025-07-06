@@ -26,8 +26,6 @@ Made with ❤ by students & the community for the open source community
  ![Apache](https://img.shields.io/badge/Apache-D22128?style=for-the-badge&logo=apache&logoColor=white) | ![MySQL Workbench](https://img.shields.io/badge/MySQL_Workbench-4479A1?style=for-the-badge&logo=mysql&logoColor=white) | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white) |
 
 
-<br>
-
 
 
 A **free** and **open-source** library management system crafted by students with `PHP`, `MySQL`, `HTML`, `CSS` & `JS`. Designed for efficient cataloging, user management, and library operations.
