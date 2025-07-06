@@ -6,7 +6,7 @@
 
 <p>A GENERAL PURPOSE LIBRARY MANAGEMENT SYSTEM</p>
 
-made with ❤ by students & the community for the open source community
+Made with ❤ by students & the community for the open source community
 
 <img src = "assets/gplms-logo-1.png">
 
