@@ -26,23 +26,18 @@ Made with ❤ by students & the community for the open source community
  ![Apache](https://img.shields.io/badge/Apache-D22128?style=for-the-badge&logo=apache&logoColor=white) | ![MySQL Workbench](https://img.shields.io/badge/MySQL_Workbench-4479A1?style=for-the-badge&logo=mysql&logoColor=white) | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white) |
 
 
-
-
-A **free** and **open-source** library management system crafted by students with `PHP`, `MySQL`, `HTML`, `CSS` & `JS`. Designed for efficient cataloging, user management, and library operations.
-
-
 <br><br>
 
 ### Key Features
 
 | Feature                                | Description                                       |
 |----------------------------------------|---------------------------------------------------|
-| 📖 **Comprehensive Material Cataloging** | Easily organize and manage a wide variety of materials. |
-| 👥 **User Management**                  | Includes role-based access for different user types. |
-| 📚 **Author & Publisher Management**    | Maintain detailed records of authors and publishers. |
-| ⚙️ **Customizable System Configuration**| Tailor the system to your specific requirements.  |
-| 📝 **Detailed Activity Auditing**       | Track and monitor all user actions in the system. |
-| 🔒 **Role-Based Access Control**        | Ensure secure access based on user roles.         |
+|  **Comprehensive Material Cataloging** | Easily organize and manage a wide variety of materials. |
+|  **User Management**                  | Includes role-based access for different user types. |
+|  **Author & Publisher Management**    | Maintain detailed records of authors and publishers. |
+|  **Customizable System Configuration**| Tailor the system to your specific requirements.  |
+|  **Detailed Activity Auditing**       | Track and monitor all user actions in the system. |
+|  **Role-Based Access Control**        | Ensure secure access based on user roles.         |
 
 
 
@@ -76,7 +71,7 @@ A **free** and **open-source** library management system crafted by students wit
 
 
 
-### Notes:
+### 🚩Notes:
  
  Make sure your `XAMPP server` is running `before` accessing the application.
  For additional `configuration` or `troubleshooting`, refer to the project documentation.
