@@ -8,7 +8,6 @@
   License            : MIT Licence
   Copyright          : (c) 2025 Panagiotis Kotsorgios, Fotis Markantonatos & Contributors
   Website            : [+]
-  Presentation       : [+]
 
   Description:
     GPLMS is a free and open-source Library Management System for schools,
