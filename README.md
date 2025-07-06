@@ -19,7 +19,7 @@ made with ❤ by students for the open source community
 
 <br>
 
-### We also used these trusted technologies
+### We also used these trusted technologies 
 
  | | | |
 |-|-|-|
