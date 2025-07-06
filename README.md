@@ -8,7 +8,7 @@
 
 made with ❤ by students for the open source community
 
-<img src = "assets/logo.png">
+<img src = "assets/gplms-logo-2.png">
 
 
 ### We used these Languages
