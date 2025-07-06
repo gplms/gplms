@@ -1,3 +1,16 @@
+<!--
+===============================================================================
+  GPLMS - General Purpose Library Management System
+  File: activity-log.php (Where the activity logs of each system user get displayed )
+  License: MIT (See https://opensource.org/licenses/MIT)
+  Copyright (c) 2025 Panagiotis Kotsorgios, Fotis Markantonatos & Contributors
+  https://github.com/PanagiotisKotsorgios/gplms 
+
+  Thank you for using our software 😁💖
+===============================================================================
+-->
+
+
 <script>
     // ====================================================
     // SIDEBAR TOGGLE FUNCTIONALITY
