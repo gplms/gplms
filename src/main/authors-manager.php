@@ -1,21 +1,82 @@
 <?php
+
+/*
+===============================================================================
+  GPLMS (General Purpose Library Management System)
+===============================================================================
+  Project Repository : https://github.com/PanagiotisKotsorgios/gplms
+  License            : MIT Licence
+  Copyright          : (c) 2025 Panagiotis Kotsorgios, Fotis Markantonatos & Contributors
+  Website            : [+]
+
+  Description:
+    GPLMS is a free and open-source Library Management System for schools,
+    universities, and public libraries. It is built using PHP, HTML, JavaScript,
+    and MySQL, and is designed to be modular, extensible, and easy to deploy.
+
+  Created At:
+    - SAEK MESOLOGHIOY [MESOLOGHI] [GREECE]
+    - WEBSITE: [https://www.saekmesol.gr/]
+            
+  This File:
+    - [authors-manager.php]
+    - Purpose: [The page that is respoonsible for the full management of the authors registered in the system]
+
+  Documentation:
+    - Setup Guide         : https://github.com/PanagiotisKotsorgios/gplms/blob/main/README.md
+    - User Guide          : https://github.com/PanagiotisKotsorgios/gplms/blob/main/docs/README.md
+
+  Contributing:
+    - Please see the contributing guide at 
+      https://github.com/PanagiotisKotsorgios/gplms/blob/main/CONTRIBUTION.md
+
+  License Notice:
+
+    This project was originally created by students and independent open-source developers,
+    not by a professional company. It is made for the community, by the community, in the
+    spirit of open source and collective learning. Contributions, use, and sharing are
+    greatelly encouraged!
+
+    This program is free software: you can use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of it under the terms of the MIT License.
+    See https://opensource.org/licenses/MIT for details.
+
+    WARNING: This software is provided as-is, without any warranty of any kind.
+    That means there are no guarantees, either express or implied, including but not limited to
+    merchantability, fitness for a particular purpose, or non-infringement.
+    The authors and contributors are not responsible for any issues, damages, or losses
+    that may arise from using, modifying, or distributing this software. 
+    You use this project entirely at your own risk.
+
+    Thank you for using our software 😁💖
+===============================================================================
+*/
+
+
+
+// Starting the session here
 session_start();
 
 // Check if user is admin
 if (!isset($_SESSION['role'])) {
+    // Redirect to login page
     header("Location: login.php");
     exit;
 } elseif ($_SESSION['role'] !== 'Administrator') {
+    // Redirect ot search item page
     header("Location: search.php");
     exit;
 }
 
-// Load configuration file containing constants and environment settings
+//  configuration file containing constants and environment settings
 require_once '../conf/config.php';
 
+// Library's name fetching module from the database
 require_once '../functions/fetch-lib-name.php';
 
+// Translator module
 require_once '../conf/translation.php';
+
 
 // Add last_modified column to authors if needed
 try {
@@ -24,6 +85,8 @@ try {
     $pdo->exec("ALTER TABLE authors ADD COLUMN last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 }
 
+
+// Function that Inserts the data
 function logActivity($pdo, $user_id, $action, $target_object = null, $details = null) {
     $ip_address = $_SERVER['REMOTE_ADDR'];
     $username = $_SESSION['username'] ?? 'System';
@@ -101,7 +164,7 @@ if (isset($_GET['delete'])) {
                 logActivity($pdo, $_SESSION['user_id'], 'DELETE', 'authors', sprintf($lang['log_deleted_author'], $id));
             }
             
-            // Redirect after delete
+            // Redirect after delete to the same pg
             header("Location: authors-manager.php");
             exit;
         } catch (Exception $e) {
@@ -189,6 +252,11 @@ $recently_updated = $pdo->query("
     LIMIT 3
 ")->fetchAll();
 ?>
+
+
+
+
+<!-- HTML STARTING POINT -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -198,6 +266,9 @@ $recently_updated = $pdo->query("
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+    <!-- STYLE INCLUDES -->
     <link rel="stylesheet" href="../styles/components/sidebar1.css">
     <link rel="icon" type="image/png" href="../../assets/logo-l.png">
     <link rel="stylesheet" href="../styles/authors.css">
@@ -205,6 +276,7 @@ $recently_updated = $pdo->query("
 </head>
 <body>
 
+<!-- Sidebar Component Include-->
 <?php include '../components/sidebar1.php';?>
 
     <!-- Main Content -->
@@ -216,7 +288,7 @@ $recently_updated = $pdo->query("
             <h4><?= $lang['authors_manager'] ?></h4>
             <div>
                 <span class="me-3"><?= $lang['welcome'] ?>, <?= $_SESSION['username'] ?></span>
-                <a href="?logout" class="btn btn-outline-danger btn-sm">
+                <a href="logout.php" class="btn btn-outline-danger btn-sm">
                     <i class="fas fa-sign-out-alt"></i> <?= $lang['logout'] ?>
                 </a>
             </div>
@@ -657,6 +729,18 @@ $recently_updated = $pdo->query("
                 this.style.textOverflow = 'ellipsis';
             });
         });
+
+     
+    document.addEventListener('DOMContentLoaded', function () {
+        var authorModal = document.getElementById('authorModal');
+        if (authorModal) {
+            authorModal.addEventListener('hidden.bs.modal', function () {
+                // Always reload the page after the modal is closed to reset state
+                window.location.href = 'authors-manager.php<?= $page > 1 ? '?page=' . $page : '' ?>';
+            });
+        }
+    });
+
     </script>
 </body>
 </html>

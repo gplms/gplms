@@ -378,6 +378,20 @@ $roleGrowth = $pdo->query("
                 });
             }
         });
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    var roleModal = document.getElementById('roleModal');
+    if (roleModal) {
+        roleModal.addEventListener('hidden.bs.modal', function () {
+            // Always reload the page after the modal is closed to reset state
+            window.location.href = 'roles-manager.php';
+        });
+    }
+});
+
     </script>
 </body>
 </html>

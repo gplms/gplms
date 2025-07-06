@@ -15,6 +15,13 @@ if (!isset($_SESSION['user_id'])) {
 
 // Get current user info
 $current_user_id = $_SESSION['user_id'];
+
+if ($current_user_id !== 1) {
+    header("Location: login.php");
+    exit;
+}
+
+
 $stmt = $pdo->prepare("SELECT * FROM users WHERE user_id = ?");
 $stmt->execute([$current_user_id]);
 $current_user = $stmt->fetch();
@@ -23,6 +30,20 @@ $current_user = $stmt->fetch();
 if ($_SESSION['role'] !== 'Administrator') {
     $error_msg = $lang['access_denied_admin'];
 }
+
+// ------------------- CHECK USER REGISTRATION SETTING ------------------- //
+$allow_user_registration = 0;
+try {
+    $stmt = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'allow_user_registration' LIMIT 1");
+    $stmt->execute();
+    $result = $stmt->fetch();
+    if ($result) {
+        $allow_user_registration = intval($result['setting_value']);
+    }
+} catch (Exception $e) {
+    // fail gracefully, keep default 0
+}
+// ----------------------------------------------------------------------- //
 
 // Function to log activity
 function logActivity($pdo, $user_id, $action, $target_object = null, $details = null) {
@@ -43,60 +64,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action_type'])) {
         $action_type = $_POST['action_type'];
         
-        try {
-            $pdo->beginTransaction();
-            
-            if ($action_type === 'add_user') {
-                $stmt = $pdo->prepare("INSERT INTO users (username, password, full_name, email, phone, role_id, status) 
-                                      VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([
-                    $_POST['username'],
-                    password_hash($_POST['password'], PASSWORD_DEFAULT),
-                    $_POST['full_name'],
-                    $_POST['email'],
-                    $_POST['phone'],
-                    $_POST['role_id'],
-                    $_POST['status']
-                ]);
-                $success_msg = $lang['user_added_success'];
-                logActivity($pdo, $current_user_id, 'INSERT', 'users', $lang['log_added_user'] . ': '.$_POST['username']);
-            }
-            elseif ($action_type === 'update_user') {
-                $update_fields = [
-                    'username' => $_POST['username'],
-                    'full_name' => $_POST['full_name'],
-                    'email' => $_POST['email'],
-                    'phone' => $_POST['phone'],
-                    'role_id' => $_POST['role_id'],
-                    'status' => $_POST['status'],
-                    'user_id' => $_POST['user_id']
-                ];
+        // ------------- BLOCK REGISTRATION IF SETTING IS DISABLED ------------- //
+        if ($action_type === 'add_user' && $allow_user_registration == 0) {
+            // Instead of adding, set error and show popup
+            $error_msg = $lang['user_reg_not_enabled'] ?? "Enable user registration first in settings before adding a new user.";
+        } else {
+        // --------------------------------------------------------------------- //
+            try {
+                $pdo->beginTransaction();
                 
-                // Update password only if provided
-                if (!empty($_POST['password'])) {
-                    $update_fields['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                    $sql = "UPDATE users SET username = ?, full_name = ?, email = ?, phone = ?, 
-                            role_id = ?, status = ?, password = ? WHERE user_id = ?";
-                } else {
-                    $sql = "UPDATE users SET username = ?, full_name = ?, email = ?, phone = ?, 
-                            role_id = ?, status = ? WHERE user_id = ?";
+                if ($action_type === 'add_user') {
+                    $stmt = $pdo->prepare("INSERT INTO users (username, password, full_name, email, phone, role_id, status) 
+                                          VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([
+                        $_POST['username'],
+                        password_hash($_POST['password'], PASSWORD_DEFAULT),
+                        $_POST['full_name'],
+                        $_POST['email'],
+                        $_POST['phone'],
+                        $_POST['role_id'],
+                        $_POST['status']
+                    ]);
+                    $success_msg = $lang['user_added_success'];
+                    logActivity($pdo, $current_user_id, 'INSERT', 'users', $lang['log_added_user'] . ': '.$_POST['username']);
                 }
+                    elseif ($action_type === 'update_user') {
+                        // Build base fields without user_id
+                        $update_fields = [
+                            'username' => $_POST['username'],
+                            'full_name' => $_POST['full_name'],
+                            'email' => $_POST['email'],
+                            'phone' => $_POST['phone'],
+                            'role_id' => $_POST['role_id'],
+                            'status' => $_POST['status']
+                        ];
+
+                        // Add password if provided
+                        if (!empty($_POST['password'])) {
+                            $update_fields['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                            $sql = "UPDATE users SET username = ?, full_name = ?, email = ?, phone = ?, 
+                                    role_id = ?, status = ?, password = ? WHERE user_id = ?";
+                        } else {
+                            $sql = "UPDATE users SET username = ?, full_name = ?, email = ?, phone = ?, 
+                                    role_id = ?, status = ? WHERE user_id = ?";
+                        }
+
+                        // Add user_id LAST for WHERE clause
+                        $update_fields['user_id'] = $_POST['user_id'];
+
+                        $stmt = $pdo->prepare($sql);
+                        $stmt->execute(array_values($update_fields));
+                        
+                        $success_msg = $lang['user_updated_success'];
+                        logActivity($pdo, $current_user_id, 'UPDATE', 'users', $lang['log_updated_user'] . ': '.$_POST['username']);
+                    }
+                                    
+                $pdo->commit();
                 
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute(array_values($update_fields));
-                
-                $success_msg = $lang['user_updated_success'];
-                logActivity($pdo, $current_user_id, 'UPDATE', 'users', $lang['log_updated_user'] . ': '.$_POST['username']);
+                // Redirect to clear parameters after successful form submission
+                header("Location: users-manager.php");
+                exit;
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                $error_msg = $lang['error_generic'] . $e->getMessage();
             }
-            
-            $pdo->commit();
-            
-            // Redirect to clear parameters after successful form submission
-            header("Location: users-manager.php");
-            exit;
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            $error_msg = $lang['error_generic'] . $e->getMessage();
         }
     }
 }
@@ -130,8 +161,20 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'user' && isset($_GET['id'])) 
         if ($id === $current_user_id) {
             $error_msg = $lang['cannot_delete_own_account'];
         } else {
+            // Start transaction
+            $pdo->beginTransaction();
+            
+            // Delete related activity logs first
+            $stmt = $pdo->prepare("DELETE FROM activity_logs WHERE user_id = ?");
+            $stmt->execute([$id]);
+            
+            // Now delete the user
             $stmt = $pdo->prepare("DELETE FROM users WHERE user_id = ?");
             $stmt->execute([$id]);
+            
+            // Commit changes
+            $pdo->commit();
+            
             $success_msg = $lang['user_deleted_success'];
             logActivity($pdo, $current_user_id, 'DELETE', 'users', $lang['log_deleted_user'] . ': '.$id);
             
@@ -140,6 +183,7 @@ if (isset($_GET['delete']) && $_GET['delete'] === 'user' && isset($_GET['id'])) 
             exit;
         }
     } catch (Exception $e) {
+        $pdo->rollBack();
         $error_msg = $lang['error_deleting_user'] . $e->getMessage();
     }
 }
@@ -187,6 +231,32 @@ if (isset($_SESSION['edit_user_id'])) {
     <?php include '../components/user-main-content.php'; ?>
     <?php include '../components/user-modal.php'; ?>
 
+    <!-- Popup for registration disabled -->
+    <?php if (!empty($error_msg) && isset($_POST['action_type']) && $_POST['action_type'] === 'add_user' && $allow_user_registration == 0): ?>
+        <div class="modal fade" id="registrationDisabledModal" tabindex="-1" aria-labelledby="registrationDisabledLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="registrationDisabledLabel"><?= $lang['user_reg_not_enabled'] ?? "User Registration Disabled" ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <?= htmlspecialchars($error_msg) ?>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['close'] ?? "Close" ?></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var modal = new bootstrap.Modal(document.getElementById('registrationDisabledModal'));
+            modal.show();
+        });
+        </script>
+    <?php endif; ?>
+
     <!-- Bootstrap & jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -215,6 +285,19 @@ if (isset($_SESSION['edit_user_id'])) {
                 row.style.backgroundColor = '';
             });
         });
+
+
+    
+document.addEventListener('DOMContentLoaded', function () {
+    var userModal = document.getElementById('userModal');
+    if (userModal) {
+        userModal.addEventListener('hidden.bs.modal', function () {
+            // Always reload the page after the modal is closed to reset state
+            window.location.href = 'users-manager.php';
+        });
+    }
+});
+
     </script>
 </body>
 </html>

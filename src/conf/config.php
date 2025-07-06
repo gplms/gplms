@@ -1,9 +1,21 @@
 <?php
+/*
+===============================================================================
+  GPLMS - General Purpose Library Management System
+  File: config.php
+  License: MIT (See https://opensource.org/licenses/MIT)
+  Copyright (c) 2025 Panagiotis Kotsorgios, Fotis Markantonatos & Contributors
+  https://github.com/PanagiotisKotsorgios/gplms
+
+    Thank you for using our software 😁💖
+===============================================================================
+*/
+
+
 /**
  * Database Connection Configuration and Initialization
  * 
  * Establishes a PDO connection to MySQL with appropriate error handling.
- * Uses UTF-8 character set for proper international character support.
  * Configures PDO to throw exceptions on errors for error handling.
  */
 
@@ -11,11 +23,11 @@
 
 // ===== Database connection parameters =====
 
-$host = 'localhost';      // MySQL server hostname (use IP or domain if remote)
-$db   = 'gplms_general';  // Database name to connect to
-$user = 'root';           // Database username 
-$pass = 'root';           // Database password 
-$charset = 'utf8mb4';     // Character encoding 
+$host = 'localhost';      
+$db   = 'gplms_general';  
+$user = 'root';           
+$pass = 'root';           
+$charset = 'utf8mb4';     
 
 // Data Source Name (DSN) - Connection string for PDO
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -31,21 +43,17 @@ try {
     // Create PDO database connection instance
     $pdo = new PDO($dsn, $user, $pass, $options);
     
-    // Connection successful (optional log message)
-    // error_log('Database connection established');
 } catch (\PDOException $e) {
     /**
      * Critical connection error handling
      * 
      * - Terminates script execution immediately
      * - Outputs sanitized error message (avoid exposing sensitive info in production)
-     * - In production, log detailed error but show generic message to users
      */
     $errorMessage = 'Database connection failed: ' . $e->getMessage();
-    // Log full error for debugging (use in development)
+    // Log full error for debugging
     error_log($errorMessage);
     
-    // Terminate with user-safe message
     die('Database connection failed. Please try again later.');
 }
 ?>

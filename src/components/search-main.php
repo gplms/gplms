@@ -233,18 +233,20 @@
 
 
 
-                                        <td class="action-cell">
-    <!-- Edit icon -->
-   <a href="edit.php?id=<?= $item['item_id'] ?>" class="action-btn btn-edit" title="<?= $lang['edit'] ?>" onclick="event.stopPropagation()">
-    <i class="fas fa-edit"></i>
-</a>
-    
-                                <!-- Delete Icon -->
- <a href="delete.php?id=<?= $item['item_id'] ?>" class="action-btn btn-delete" title="<?= $lang['delete'] ?>" 
-   onclick="return confirm('<?= $lang['confirm_delete_item'] ?>'); event.stopPropagation()">
-    <i class="fas fa-trash"></i>
-</a>
-</td>
+<?php if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) : ?>
+    <td class="action-cell">
+        <!-- Edit icon -->
+        <a href="edit.php?id=<?= $item['item_id'] ?>" class="action-btn btn-edit" title="<?= $lang['edit'] ?>" onclick="event.stopPropagation()">
+            <i class="fas fa-edit"></i>
+        </a>
+        
+        <!-- Delete Icon -->
+        <a href="delete.php?id=<?= $item['item_id'] ?>" class="action-btn btn-delete" title="<?= $lang['delete'] ?>" 
+           onclick="return confirm('<?= $lang['confirm_delete_item'] ?>'); event.stopPropagation()">
+            <i class="fas fa-trash"></i>
+        </a>
+    </td>
+<?php endif; ?>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

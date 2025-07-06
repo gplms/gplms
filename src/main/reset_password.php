@@ -7,6 +7,13 @@ $message_type = '';
 $valid_token = false;
 $user_id = null;
 
+
+if (empty($_GET['token'])) {
+    // Optionally redirect or show a minimal error page
+
+    header('Location: login.php');
+}
+
 // Check if token exists
 if (!empty($_GET['token'])) {
     $token = $_GET['token'];

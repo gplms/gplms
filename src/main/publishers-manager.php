@@ -275,6 +275,20 @@ $recently_updated = $pdo->query("
                 }
             });
         });
+
+
+
+
+   
+document.addEventListener('DOMContentLoaded', function () {
+    var publisherModal = document.getElementById('publisherModal');
+    if (publisherModal) {
+        publisherModal.addEventListener('hidden.bs.modal', function () {
+            // Always reload the page after the modal is closed to reset state
+            window.location.href = 'publishers-manager.php';
+        });
+    }
+});
     </script>
 </body>
 </html>

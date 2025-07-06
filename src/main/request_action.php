@@ -3,148 +3,7 @@ session_start();
 require_once '../conf/config.php';
 require_once '../conf/translation.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
-
-// Initialize variables
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
-$item_id = (int)($_GET['id'] ?? $_POST['item_id'] ?? 0);
-$confirmation = $_POST['confirmation'] ?? '';
-$message = '';
-$message_type = '';
-
-// Validate input
-$valid_actions = ['edit', 'delete'];
-if (!in_array($action, $valid_actions) || $item_id <= 0) {
-    $message = $lang['invalid_request'] ?? 'Invalid request';
-    $message_type = "error";
-}
-
-// Get item details
-if (!$message) {
-    $stmt = $pdo->prepare("SELECT li.*, u.username AS added_by_username 
-                          FROM library_items li
-                          LEFT JOIN users u ON li.added_by = u.user_id
-                          WHERE li.item_id = ?");
-    $stmt->execute([$item_id]);
-    $item = $stmt->fetch();
-    
-    if (!$item) {
-        $message = $lang['item_not_found'] ?? 'Item not found';
-        $message_type = "error";
-    }
-}
-
-// Process form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $confirmation === 'yes' && !$message) {
-    try {
-        // Get requester details
-        $stmt = $pdo->prepare("SELECT username, full_name, email FROM users WHERE user_id = ?");
-        $stmt->execute([$_SESSION['user_id']]);
-        $requester = $stmt->fetch();
-        
-        // Log the request
-        $stmt = $pdo->prepare("
-            INSERT INTO activity_logs (user_id, action, target_object, details, ip_address) 
-            VALUES (?, ?, ?, ?, ?)
-        ");
-        $stmt->execute([
-            $_SESSION['user_id'],
-            "REQUEST_" . strtoupper($action),
-            "library_items",
-            "Requested to $action item: {$item['title']} (ID: $item_id)",
-            $_SERVER['REMOTE_ADDR']
-        ]);
-        
-        // Send email notification to admin
-        $email_sent = sendRequestNotification($action, $item_id, $item['title'], $item['added_by'], $requester);
-        
-        if ($email_sent) {
-            $message = $lang['request_submitted'] ?? 'Your request has been submitted to the administrator';
-            $message_type = "success";
-        } else {
-            $message = $lang['request_submitted_no_email'] ?? 'Request submitted but email notification failed';
-            $message_type = "warning";
-        }
-    } catch (Exception $e) {
-        $message = $lang['error_processing_request'] ?? 'Error processing request: ' . $e->getMessage();
-        $message_type = "error";
-    }
-}
-
-/**
- * Sends email notification to admin about the request
- */
-function sendRequestNotification($action, $item_id, $title, $added_by, $requester) {
-    global $pdo;
-    
-    try {
-        // Get MailerSend settings
-        $stmt = $pdo->prepare("
-            SELECT setting_key, setting_value 
-            FROM system_settings 
-            WHERE setting_key IN (
-                'mailersend_api_key', 
-                'mailersend_sender_email', 
-                'mailersend_sender_name',
-                'contact_form_recipient_email'
-            )
-        ");
-        $stmt->execute();
-        $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-        
-        $api_key = $settings['mailersend_api_key'] ?? '';
-        $sender_email = $settings['mailersend_sender_email'] ?? '';
-        $sender_name = $settings['mailersend_sender_name'] ?? '';
-        $admin_email = $settings['contact_form_recipient_email'] ?? '';
-        
-        // Get item owner details
-        $stmt = $pdo->prepare("SELECT username, full_name, email FROM users WHERE user_id = ?");
-        $stmt->execute([$added_by]);
-        $owner = $stmt->fetch();
-        
-        // Only send if we have all required information
-        if ($api_key && $sender_email && $admin_email && $requester && $owner) {
-            $actionType = ucfirst($action);
-            
-            $subject = "Action Request: $actionType for '$title'";
-            
-            $body = "A user has requested to $action an item in the library system:\n\n";
-            $body .= "Item Title: $title\n";
-            $body .= "Item ID: $item_id\n";
-            $body .= "Requested Action: $actionType\n";
-            $body .= "Requester: {$requester['full_name']} ({$requester['username']})\n";
-            $body .= "Requester Email: {$requester['email']}\n";
-            $body .= "Item Owner: {$owner['full_name']} ({$owner['username']})\n";
-            $body .= "Owner Email: {$owner['email']}\n";
-            $body .= "Date: " . date('Y-m-d H:i:s') . "\n\n";
-            $body .= "Please review this request and take appropriate action.\n\n";
-            $body .= "This is an automated notification from the Library Management System.";
-            
-            // Send email
-            return send_email(
-                $admin_email,
-                'System Administrator',
-                $subject,
-                $body,
-                $api_key,
-                $sender_email,
-                $sender_name
-            );
-        }
-        return false;
-    } catch (Exception $e) {
-        error_log("Failed to send request notification: " . $e->getMessage());
-        return false;
-    }
-}
-
-/**
- * Enhanced email function with MailerSend
- */
+// Define the email function first
 function send_email($to_email, $to_name, $subject, $body, $api_key, $sender_email, $sender_name) {
     if (!filter_var($to_email, FILTER_VALIDATE_EMAIL)) {
         return false;
@@ -193,6 +52,161 @@ function send_email($to_email, $to_name, $subject, $body, $api_key, $sender_emai
 
     return $httpCode === 202;
 }
+
+/**
+ * Sends email notification to admin about the request
+ */
+function sendRequestNotification($action, $item_id, $title, $added_by, $requester, $reason = '') {
+    global $pdo;
+    
+    try {
+        // Get MailerSend settings
+        $stmt = $pdo->prepare("
+            SELECT setting_key, setting_value 
+            FROM system_settings 
+            WHERE setting_key IN (
+                'mailersend_api_key', 
+                'mailersend_sender_email', 
+                'mailersend_sender_name',
+                'contact_form_recipient_email'
+            )
+        ");
+        $stmt->execute();
+        $settings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        $api_key = $settings['mailersend_api_key'] ?? '';
+        $sender_email = $settings['mailersend_sender_email'] ?? '';
+        $sender_name = $settings['mailersend_sender_name'] ?? '';
+        $admin_email = $settings['contact_form_recipient_email'] ?? '';
+        
+        // Get item owner details
+        $stmt = $pdo->prepare("SELECT username, full_name, email FROM users WHERE user_id = ?");
+        $stmt->execute([$added_by]);
+        $owner = $stmt->fetch();
+        
+        // Only send if we have all required information
+        if ($api_key && $sender_email && $admin_email && $requester && $owner) {
+            $actionType = ucfirst($action);
+            
+            $subject = "Action Request: $actionType for '$title'";
+            
+            $body = "A user has requested to $action an item in the library system:\n\n";
+            $body .= "Item Title: $title\n";
+            $body .= "Item ID: $item_id\n";
+            $body .= "Requested Action: $actionType\n";
+            $body .= "Requester: {$requester['full_name']} ({$requester['username']})\n";
+            $body .= "Requester Email: {$requester['email']}\n";
+            $body .= "Item Owner: {$owner['full_name']} ({$owner['username']})\n";
+            $body .= "Owner Email: {$owner['email']}\n";
+            
+            // Add reason to email if provided
+            if (!empty($reason)) {
+                $body .= "\nReason/Details:\n";
+                $body .= wordwrap($reason, 70) . "\n";
+            } else {
+                $body .= "\nReason: Not provided\n";
+            }
+            
+            $body .= "\nDate: " . date('Y-m-d H:i:s') . "\n\n";
+            $body .= "Please review this request and take appropriate action.\n\n";
+            $body .= "This is an automated notification from the Library Management System.";
+            
+            // Send email
+            return send_email(
+                $admin_email,
+                'System Administrator',
+                $subject,
+                $body,
+                $api_key,
+                $sender_email,
+                $sender_name
+            );
+        }
+        return false;
+    } catch (Exception $e) {
+        error_log("Failed to send request notification: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// Initialize variables
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
+$item_id = (int)($_GET['id'] ?? $_POST['item_id'] ?? 0);
+$confirmation = $_POST['confirmation'] ?? '';
+$message = '';
+$message_type = '';
+
+// Validate input
+$valid_actions = ['edit', 'delete'];
+if (!in_array($action, $valid_actions) || $item_id <= 0) {
+    $message = $lang['invalid_request'] ?? 'Invalid request';
+    $message_type = "error";
+}
+
+// Get item details
+if (!$message) {
+    $stmt = $pdo->prepare("SELECT li.*, u.username AS added_by_username 
+                          FROM library_items li
+                          LEFT JOIN users u ON li.added_by = u.user_id
+                          WHERE li.item_id = ?");
+    $stmt->execute([$item_id]);
+    $item = $stmt->fetch();
+    
+    if (!$item) {
+        $message = $lang['item_not_found'] ?? 'Item not found';
+        $message_type = "error";
+    }
+}
+
+// Process form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $confirmation === 'yes' && !$message) {
+    try {
+        // Get requester details
+        $stmt = $pdo->prepare("SELECT username, full_name, email FROM users WHERE user_id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $requester = $stmt->fetch();
+        
+        // Get reason from form
+        $reason = trim($_POST['reason'] ?? '');
+        
+        // Log the request
+        $stmt = $pdo->prepare("
+            INSERT INTO activity_logs (user_id, action, target_object, details, ip_address) 
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $logDetails = "Requested to $action item: {$item['title']} (ID: $item_id)";
+        if ($reason) {
+            $logDetails .= ". Reason: $reason";
+        }
+        $stmt->execute([
+            $_SESSION['user_id'],
+            "REQUEST_" . strtoupper($action),
+            "library_items",
+            $logDetails,
+            $_SERVER['REMOTE_ADDR']
+        ]);
+        
+        // Send email notification to admin
+        $email_sent = sendRequestNotification($action, $item_id, $item['title'], $item['added_by'], $requester, $reason);
+        
+        if ($email_sent) {
+            $message = $lang['request_submitted'] ?? 'Your request has been submitted to the administrator';
+            $message_type = "success";
+        } else {
+            $message = $lang['request_submitted_no_email'] ?? 'Request submitted but email notification failed';
+            $message_type = "warning";
+        }
+    } catch (Exception $e) {
+        $message = $lang['error_processing_request'] ?? 'Error processing request: ' . $e->getMessage();
+        $message_type = "error";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -211,6 +225,7 @@ function send_email($to_email, $to_name, $subject, $body, $api_key, $sender_emai
         .action-icon { font-size: 4rem; margin-bottom: 20px; }
         .btn-request { background-color: #1976d2; color: white; font-weight: 500; }
         .btn-request:hover { background-color: #1565c0; }
+        .reason-label .required { color: #dc3545; }
     </style>
     <script>
         <?php if ($message_type === 'success'): ?>
@@ -275,6 +290,24 @@ function send_email($to_email, $to_name, $subject, $body, $api_key, $sender_emai
                         <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
                         <input type="hidden" name="item_id" value="<?= $item_id ?>">
                         <input type="hidden" name="confirmation" value="yes">
+                        
+                        <!-- Reason input field -->
+                        <div class="mb-3">
+                            <label for="reason" class="form-label reason-label">
+                                <?= $lang['reason_label'] ?? 'Reason for request' ?>
+                                <span class="required">*</span>
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="reason" 
+                                name="reason" 
+                                rows="4" 
+                                required
+                                placeholder="<?= $lang['reason_placeholder'] ?? 'Please explain why you need to perform this action and what changes you plan to make...' ?>"></textarea>
+                            <div class="form-text">
+                                <?= $lang['reason_help'] ?? 'This information will be included in the notification to the administrator' ?>
+                            </div>
+                        </div>
                         
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-request btn-lg">

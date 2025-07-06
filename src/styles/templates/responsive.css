@@ -1,0 +1,32 @@
+        @media (max-width: 576px) {
+            .error-container {
+                padding: 30px 20px;
+            }
+            
+            .error-number {
+                font-size: 4rem;
+            }
+            
+            .error-title {
+                font-size: 1.5rem;
+            }
+            
+            .error-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+        
+            .container {
+                padding: 30px 20px;
+            }
+            .btn-container {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .btn-action {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+        

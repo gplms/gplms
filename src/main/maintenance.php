@@ -3,6 +3,17 @@
 require_once '../conf/config.php'; // Database connection
 require_once '../conf/translation.php'; // Include translation system
 
+// Start session if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Check if user session is active; if not, redirect to login.php
+if (!isset($_SESSION['user_id'])) { // Adjust 'user_id' to your session variable name
+    header("Location: login.php");
+    exit();
+}
+
 // Get library name for display
 $library_name = $lang['library_system']; // Use translation key as default
 try {

@@ -1,29 +1,76 @@
-<!-- ========================== START OF PHP CODE ========================= -->
-
 <?php
+/*
+===============================================================================
+  GPLMS (General Purpose Library Management System)
+===============================================================================
+  Project Repository : https://github.com/PanagiotisKotsorgios/gplms
+  License            : MIT Licence
+  Copyright          : (c) 2025 Panagiotis Kotsorgios, Fotis Markantonatos & Contributors
+  Website            : [+]
 
-/**
- * Admin Activity Log Dashboard
- * 
- * Provides an administrative interface for viewing and filtering system activity logs.
- * Includes access control, search/filter functionality, pagination, and data visualization.
- */
+  Description:
+    GPLMS is a free and open-source Library Management System for schools,
+    universities, and public libraries. It is built using PHP, HTML, JavaScript,
+    and MySQL, and is designed to be modular, extensible, and easy to deploy.
 
-// Start session to access user authentication data
+  Creates At:
+    - SAEK MESOLOGHIOY [MESOLOGHI] [GREECE]
+    - WEBSITE: [https://www.saekmesol.gr/]
+            
+  This File:
+    - [activity-log.php]
+    - Purpose: [Logging every possible user's action to the database & then displays it in frontend]
+
+  Documentation:
+    - Setup Guide         : https://github.com/PanagiotisKotsorgios/gplms/blob/main/README.md
+    - User Guide          : https://github.com/PanagiotisKotsorgios/gplms/blob/main/docs/README.md
+
+  Contributing:
+    - Please see the contributing guide at 
+      https://github.com/PanagiotisKotsorgios/gplms/blob/main/CONTRIBUTION.md
+
+  License Notice:
+
+    This project was originally created by students and independent open-source developers,
+    not by a professional company. It is made for the community, by the community, in the
+    spirit of open source and collective learning. Contributions, use, and sharing are
+    greatelly encouraged!
+
+    This program is free software: you can use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of it under the terms of the MIT License.
+    See https://opensource.org/licenses/MIT for details.
+
+    WARNING: This software is provided as-is, without any warranty of any kind.
+    That means there are no guarantees, either express or implied, including but not limited to
+    merchantability, fitness for a particular purpose, or non-infringement.
+    The authors and contributors are not responsible for any issues, damages, or losses
+    that may arise from using, modifying, or distributing this software. 
+    You use this project entirely at your own risk.
+
+    Thank you for using our software 😁💖
+===============================================================================
+*/
+
+
+
+// Start session here
 session_start();
 
+// Including the check-session file to prevent anauthorised access
 require_once '../conf/check-session.php';
 
-// Load configuration file containing constants and environment settings
+// Load configuration file containing db conn parametersw and logic
 require_once '../conf/config.php';
 
+//Checks if maintenance mode is enabled and acts according to it
 require_once 'maintenance_check.php';
 
-require_once '../conf/translation.php'; // Include the translation component
+// Include the translation component
+require_once '../conf/translation.php'; 
 
-
-
+// Fetches the library name directly from the database
 require_once '../functions/fetch-lib-name.php';
+
 
 /**
  * Filter Handling Section
@@ -31,11 +78,13 @@ require_once '../functions/fetch-lib-name.php';
  * Processes GET parameters for search/filter operations and sanitizes inputs.
  * All user inputs are treated as untrusted and properly sanitized.
  */
-$search = isset($_GET['search']) ? trim($_GET['search']) : '';          // Global search term
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';  // Global search term
 $actionFilter = isset($_GET['action']) ? $_GET['action'] : '';          // Filter by specific action
 $targetFilter = isset($_GET['target']) ? $_GET['target'] : '';          // Filter by target object
 $dateFrom = isset($_GET['date_from']) ? $_GET['date_from'] : '';        // Start date filter
 $dateTo = isset($_GET['date_to']) ? $_GET['date_to'] : '';              // End date filter
+
+
 
 /**
  * Query Building Section
@@ -44,10 +93,10 @@ $dateTo = isset($_GET['date_to']) ? $_GET['date_to'] : '';              // End d
  * Uses parameterized queries to prevent SQL injection vulnerabilities.
  */
 $baseQuery = "SELECT * FROM activity_logs";  // Base query without filters
-$whereClauses = [];                         // Array to store WHERE conditions
+$whereClauses = [];                      // Array to store WHERE conditions
 $params = [];                               // Array to store bound parameters
 
-// With this:
+// With this
 if (!empty($search)) {
     $whereClauses[] = "(username LIKE :search_user OR action LIKE :search_action OR target_object LIKE :search_target OR details LIKE :search_details OR ip_address LIKE :search_ip)";
     $params[':search_user'] = "%$search%";
@@ -56,19 +105,16 @@ if (!empty($search)) {
     $params[':search_details'] = "%$search%";
     $params[':search_ip'] = "%$search%";
 }
-
 // Add action type filter
 if (!empty($actionFilter)) {
     $whereClauses[] = "action = :action";
     $params[':action'] = $actionFilter;
 }
-
 // Add target object filter
 if (!empty($targetFilter)) {
     $whereClauses[] = "target_object = :target";
     $params[':target'] = $targetFilter;
 }
-
 // Add date range filters
 if (!empty($dateFrom)) {
     $whereClauses[] = "timestamp >= :date_from";
@@ -78,12 +124,13 @@ if (!empty($dateTo)) {
     $whereClauses[] = "timestamp <= :date_to";
     $params[':date_to'] = $dateTo . ' 23:59:59';  // Include entire end day
 }
-
 // Combine WHERE clauses if any filters exist
 $where = '';
 if (!empty($whereClauses)) {
     $where = " WHERE " . implode(" AND ", $whereClauses);
 }
+
+
 
 /**
  * Pagination Implementation
@@ -101,22 +148,23 @@ try {
     }
 } catch (PDOException $e) {
     error_log("Items per page setting error: " . $e->getMessage());
-    // Keep default value
 }
 
-
-
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $perPage;  // Calculate SQL offset
+$offset = ($page - 1) * $perPage; 
+
 
 // Get total log count for pagination
 $countStmt = $pdo->prepare("SELECT COUNT(*) FROM activity_logs $where");
 foreach ($params as $key => $value) {
     $countStmt->bindValue($key, $value);
 }
+
 $countStmt->execute();
 $totalLogs = $countStmt->fetchColumn();
-$totalPages = ceil($totalLogs / $perPage);  // Calculate total pages
+$totalPages = ceil($totalLogs / $perPage);  // wE calculate total pages
+
+
 
 /**
  * Data Retrieval Section
@@ -137,6 +185,8 @@ $query->bindValue(':perPage', $perPage, PDO::PARAM_INT);
 $query->execute();
 $logs = $query->fetchAll();
 
+
+
 /**
  * Filter Option Data
  * 
@@ -148,6 +198,8 @@ $actions = $pdo->query("SELECT DISTINCT action FROM activity_logs ORDER BY actio
 
 // Get unique targets (excluding empty values)
 $targets = $pdo->query("SELECT DISTINCT target_object FROM activity_logs WHERE target_object IS NOT NULL AND target_object != '' ORDER BY target_object")->fetchAll(PDO::FETCH_COLUMN);
+
+
 
 /**
  * Data Visualization Queries
@@ -172,18 +224,17 @@ $topUsers = $pdo->query("SELECT username, COUNT(*) as count
                          ORDER BY count DESC 
                          LIMIT 5")->fetchAll();
 
+
+
 /**
  * Formatting Functions
  * 
  * Helper functions to transform raw data into presentable HTML.
- * These enhance readability and provide visual cues through icons.
  */
 
 /**
  * Formats action type with appropriate icon and color
  * 
- * @param string $action The action type from log
- * @return string HTML-formatted action with icon
  */
 function formatAction($action) {
     // Icon mapping with Bootstrap classes
@@ -200,15 +251,13 @@ function formatAction($action) {
         'BACKUP' => 'fas fa-save text-warning'
     ];
     
-    $icon = $icons[$action] ?? 'fas fa-circle';  // Default icon
+    $icon = $icons[$action] ?? 'fas fa-circle';  
     return "<i class='$icon'></i> $action";      // Returns formatted HTML
 }
 
+
 /**
  * Formats target object with icon representation
- * 
- * @param string $target The target object from log
- * @return string HTML-formatted target with icon
  */
 function formatTarget($target) {
     if (!$target) return '';  // Handle empty targets
@@ -229,26 +278,22 @@ function formatTarget($target) {
     // Extract base name for icon matching
     $parts = explode('_', $target);
     $base = $parts[0] ?? '';
-    $icon = $icons[$base] ?? $icons[$target] ?? 'fas fa-file';  // Fallback icons
+    $icon = $icons[$base] ?? $icons[$target] ?? 'fas fa-file';  
     
     return "<i class='$icon'></i> " . ucwords(str_replace('_', ' ', $target));
 }
 
+
+
 /**
  * Formats IP address with monospace font for readability
- * 
- * @param string $ip IP address
- * @return string HTML-formatted IP
  */
 function formatIP($ip) {
-    return "<span class='font-monospace'>$ip</span>";  // Monospace for alignment
+    return "<span class='font-monospace'>$ip</span>";  
 }
 
 /**
  * Formats timestamp into human-readable date/time components
- * 
- * @param string $timestamp Database timestamp
- * @return string HTML-formatted date/time
  */
 function formatTimestamp($timestamp) {
     $date = date('M d, Y', strtotime($timestamp));  // Friendly date format
@@ -267,7 +312,7 @@ function formatTimestamp($timestamp) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPLMS - Free & Open Source Project | Activity Log</title>
+    <title>GPLMS - Activity Log</title>
     
     <!-- External CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -278,40 +323,22 @@ function formatTimestamp($timestamp) {
     
     <!-- Local Styles -->
     <link rel="stylesheet" href="../styles/activity-log.css">
-        <link rel="stylesheet" href="../styles/general/general-main-styles.css">
-        <link rel="stylesheet" href="../styles/components/topbar.css">
-
-        <link rel="stylesheet" href="../styles/responsive/responsive.css">
-
-            <link rel="icon" type="image/png" href="../../assets/logo-l.png">
-            <link rel="stylesheet" href="../styles/components/sidebar1.css">
-
-        
-
+    <link rel="stylesheet" href="../styles/general/general-main-styles.css">
+    <link rel="stylesheet" href="../styles/components/topbar.css">
+    <link rel="stylesheet" href="../styles/responsive/responsive.css">
+    <link rel="icon" type="image/png" href="../../assets/logo-l.png">
+    <link rel="stylesheet" href="../styles/components/sidebar1.css">
 <body>
     
-    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-         SIDEBAR COMPONENT
-         - Persistent navigation panel
-         - Loaded from shared component file
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-<?php include '../components/sidebar1.php'; ?>
+    <!-- Public Sidebar Component -->
+    <?php include '../components/sidebar1.php'; ?>
 
-    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-         MAIN CONTENT COMPONENT
-         - Core activity log interface
-         - Contains filters, table, and pagination
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!-- MAIN CONTENT COMPONENT -->
     <?php include '../components/activity-main-content.php'; ?>
     
-    <!-- Bootstrap Core JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-         ACTIVITY STATISTICS COMPONENT
-         - Charts and visualization elements
-         - JavaScript-powered functionality
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!-- ACTIVITY STATISTICS COMPONENT -->
     <?php include '../components/activity-log-stats.php'; ?>
 
 </body>

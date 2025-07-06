@@ -163,42 +163,7 @@
             </div>
         </div>
         
-        <!-- Roles Management Card -->
-        <div class="admin-card">
-            <div class="card-header">
-                <span><?= $lang['manage_roles'] ?></span>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th><?= $lang['id'] ?></th>
-                                <th><?= $lang['role_name'] ?></th>
-                                <th><?= $lang['description'] ?></th>
-                                <th><?= $lang['status'] ?></th>
-                                <th><?= $lang['created_at'] ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($roles as $role): ?>
-                                <tr>
-                                    <td><?= $role['role_id'] ?></td>
-                                    <td><?= htmlspecialchars($role['role_name']) ?></td>
-                                    <td><?= htmlspecialchars($role['description'] ?? $lang['na']) ?></td>
-                                    <td>
-                                        <span class="status-badge status-<?= $role['status'] === 'active' ? 'active' : 'suspended' ?>">
-                                            <?= $lang[$role['status']] ?>
-                                        </span>
-                                    </td>
-                                    <td><?= date('M d, Y', strtotime($role['created_at'])) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+   
     </div>
 
     <!-- Footer -->
