@@ -9,7 +9,7 @@
 Made with ❤ by students & the community for the open source community
 
 
-<img src = "web.jpg">
+<img src = "assets/web.jpg">
 
 ### We used these Languages
 
