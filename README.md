@@ -8,7 +8,6 @@
 
 Made with ❤ by students & the community for the open source community
 
-<img src = "assets/gplms-logo-1.png">
 
 
 ### We used these Languages
