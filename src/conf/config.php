@@ -1,24 +1,4 @@
 <?php
-/*
-===============================================================================
-  GPLMS - General Purpose Library Management System
-  File: config.php
-  License: MIT (See https://opensource.org/licenses/MIT)
-  Copyright (c) 2025 Panagiotis Kotsorgios, Fotis Markantonatos & Contributors
-  https://github.com/PanagiotisKotsorgios/gplms
-
-    Thank you for using our software 😁💖
-===============================================================================
-*/
-
-
-/**
- * Database Connection Configuration and Initialization
- * 
- * Establishes a PDO connection to MySQL with appropriate error handling.
- * Configures PDO to throw exceptions on errors for error handling.
- */
-
 
 
 // ===== Database connection parameters =====
