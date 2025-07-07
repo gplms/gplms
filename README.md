@@ -9,6 +9,8 @@
 Made with ❤ by students & the community for the open source community
 
 
+<img src = "![εικόνα](https://github.com/user-attachments/assets/093987b3-f685-4402-88e5-a8d4b65a3761)
+">
 
 ### We used these Languages
 
