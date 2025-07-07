@@ -1,14 +1,4 @@
-<!--
-===============================================================================
-  GPLMS - General Purpose Library Management System
-  File: 404.php (Custom 404 response template) 
-  License: MIT (See https://opensource.org/licenses/MIT)
-  Copyright (c) 2025 Panagiotis Kotsorgios, Fotis Markantonatos & Contributors
-  https://github.com/PanagiotisKotsorgios/gplms
 
-    Thank you for using our software 😁💖
-===============================================================================
--->
 
 <!-- 404 error content container -->
 <div class="error-container">
