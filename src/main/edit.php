@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container py-4">
-        <h1 class="text-center mb-4"><i class="fas fa-edit me-2"></i><?= $lang['edit_author'] ?></h1>
+        <h1 class="text-center mb-4"><i class="fas fa-edit me-2"></i><?= $lang['edit_item'] ?></h1>
         
         <?php if ($success_message): ?>
             <div class="alert alert-success">
