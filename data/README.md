@@ -1,4 +1,4 @@
-# Dummy Data and Correct CSV Format for System Uploads
+# Dummy Data and Correct CSV Format for System Uploads.
 
 This folder contains **dummy data** and guidelines to ensure that every CSV file you upload to the system is formatted correctly. Adhering to this format is crucial to prevent errors during the import process.
 
