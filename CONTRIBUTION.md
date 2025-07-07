@@ -28,9 +28,8 @@ By participating in this project, you agree to follow the [Code of Conduct](CODE
 
 ## Style Guide
 
-- Follow the coding style that exists in the project.
 - Write clear, concise, and descriptive commit messages.
-- Add or update documentation as needed.
+- Add or update the general documentation as needed.
 
 ## Reporting Issues
 
@@ -42,7 +41,7 @@ When reporting an issue, please include:
 
 ## Contact
 
-If you have any questions, feel free to open an issue or reach out to the maintainers.
+If you have any questions, feel free to open an issue or reach out.
 
 ---
 
