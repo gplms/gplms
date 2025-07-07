@@ -44,7 +44,7 @@ Made with ❤ by students & the community for the open source community
 
 <br>
 
-### Getting Started
+### Getting Started 
 
 | Step       | Action                                                                                      |
 |------------|---------------------------------------------------------------------------------------------|
