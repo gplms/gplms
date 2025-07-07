@@ -35,7 +35,7 @@ This folder contains the complete source code of the system. It includes all cus
 
 We welcome contributions to help improve this project. 
 
-- **Open Issues:** If you encounter any bugs or have feature requests, feel free to [open an issue](https://github.com/PanagiotisKotsorgios/gplms/issues).  
+- **Open Issues:** If you encounter any bugs or have feature requests, feel free to [open an issue](https://github.com/gplms/gplms/issues).  
 - **Submit Pull Requests:** Contribute directly by submitting pull requests for new features or fixes.  
 - **Feedback:** Share your ideas to help us grow this project!
 
