@@ -22,7 +22,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="https://www.github.com/PanagiotisKotsorgios/gplms">
+                        <a class="nav-link" href="../main/control_panel.php">
                             <i class="fa-solid fa-code-pull-request"></i> &nbsp; <?= $lang['page_title_control_panel'] ?>&nbsp;
                         </a>
                     </li>
